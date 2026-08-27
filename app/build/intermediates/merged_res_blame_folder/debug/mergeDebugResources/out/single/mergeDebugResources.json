@@ -1,0 +1,50 @@
+[
+    {
+        "merged": "com.kastep.app-debug-50:/drawable-xxhdpi_ic_gopay.png.flat",
+        "source": "com.kastep.app-main-52:/drawable-xxhdpi/ic_gopay.png"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/drawable-xxhdpi_ic_ovo.png.flat",
+        "source": "com.kastep.app-main-52:/drawable-xxhdpi/ic_ovo.png"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/drawable-xxhdpi_ic_qris.png.flat",
+        "source": "com.kastep.app-main-52:/drawable-xxhdpi/ic_qris.png"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/drawable-xxhdpi_ic_bni.png.flat",
+        "source": "com.kastep.app-main-52:/drawable-xxhdpi/ic_bni.png"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.kastep.app-main-52:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.kastep.app-main-52:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/drawable-xxhdpi_ic_dana.png.flat",
+        "source": "com.kastep.app-main-52:/drawable-xxhdpi/ic_dana.png"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/drawable-xxhdpi_ic_spongebob.png.flat",
+        "source": "com.kastep.app-main-52:/drawable-xxhdpi/ic_spongebob.png"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/drawable-xxhdpi_ic_bca.png.flat",
+        "source": "com.kastep.app-main-52:/drawable-xxhdpi/ic_bca.png"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/drawable-xxhdpi_ic_mandiri.png.flat",
+        "source": "com.kastep.app-main-52:/drawable-xxhdpi/ic_mandiri.png"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.kastep.app-main-52:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.kastep.app-debug-50:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.kastep.app-main-52:/mipmap-anydpi-v26/ic_launcher.xml"
+    }
+]
