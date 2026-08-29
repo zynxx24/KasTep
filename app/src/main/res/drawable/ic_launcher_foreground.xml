@@ -4,7 +4,43 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- Wallet body -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M38,34h32c3.31,0 6,2.69 6,6v28c0,3.31 -2.69,6 -6,6H38c-3.31,0 -6,-2.69 -6,-6V40c0,-3.31 2.69,-6 6,-6zM64,56c-2.21,0 -4,1.79 -4,4s1.79,4 4,4s4,-1.79 4,-4s-1.79,-4 -4,-4z" />
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#00B0FF"
+        android:strokeWidth="3"
+        android:pathData="M30,42 L30,38 C30,35 32,33 35,33 L70,33 C73,33 75,35 75,38 L75,72 C75,75 73,77 70,77 L35,77 C32,77 30,75 30,72 Z" />
+
+    <!-- Cards sticking out top -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#00B0FF"
+        android:strokeWidth="2.5"
+        android:pathData="M40,33 L42,25 L72,30 L70,33" />
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#00B0FF"
+        android:strokeWidth="2.5"
+        android:pathData="M45,33 L48,24 L74,28 L72,33" />
+
+    <!-- Clasp/tab on right side -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#00B0FF"
+        android:strokeWidth="3"
+        android:pathData="M75,52 L82,52 C84,52 85,53 85,55 L85,62 C85,64 84,65 82,65 L75,65" />
+
+    <!-- Clasp circle -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#00B0FF"
+        android:strokeWidth="2"
+        android:pathData="M79,58.5 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-6 0" />
+
+    <!-- Inner dot in clasp -->
+    <path
+        android:fillColor="#00B0FF"
+        android:pathData="M79,58.5 m-1.2,0 a1.2,1.2 0,1 1,2.4 0 a1.2,1.2 0,1 1,-2.4 0" />
 </vector>

@@ -5,7 +5,7 @@
 ![UI Framework](https://img.shields.io/badge/UI-Jetpack_Compose_Material3-purple.svg)
 ![Storage](https://img.shields.io/badge/Storage-Offline--First_(SharedPreferences)-orange.svg)
 ![Build Tool](https://img.shields.io/badge/Build-Gradle_(JDK_21)-darkgreen.svg)
-![Release](https://img.shields.io/badge/Release-v2.0.0--pre-brightgreen.svg)
+![Release](https://img.shields.io/badge/Release-v1.1--pre-brightgreen.svg)
 
 **KASTEP** adalah aplikasi manajemen kas dan keuangan kelas modern yang dirancang khusus untuk memenuhi kebutuhan pengelolaan keuangan kelas **XII PPLG**. Aplikasi ini mengkombinasikan antarmuka bertema **Pure Black** dengan aksen Cyan/Blue yang elegan, responsif, berkinerja tinggi berbasis **Jetpack Compose (Material3)** dan menerapkan pola arsitektur **Offline-First**.
 
@@ -294,6 +294,12 @@ if (showPemasukanDetailDialog) {
 - Dropdown pemfilteran periode laporan (*Juli 2026*, *Agustus 2026*, *Semua Periode*).
 - Kartu interaktif Total Pemasukan (detail Lunas/Belum) & Total Pengeluaran (detail log transaksi).
 - Chart trend Pemasukan vs Pengeluaran berbasis Jetpack Compose Canvas.
+
+### 6. 📅 Jadwal Pelajaran Interaktif (v1.1)
+- Tabel jadwal pelajaran harian (Senin–Jumat) dengan blok warna per mata pelajaran sesuai jadwal resmi **SMK Negeri 2 Kuta Selatan TA 2026/2027**.
+- Menampilkan nama guru pengampu di setiap blok jadwal.
+- Tabel **Alokasi Jam Pelajaran** lengkap untuk Senin, Selasa–Kamis, dan Jumat.
+- Horizontal scroll untuk navigasi 10 jam pelajaran.
 
 ---
 
