@@ -12,51 +12,46 @@ class KastepViewModel(application: Application) : AndroidViewModel(application) 
 
     val isLoggedIn: StateFlow<Boolean> = repository.isLoggedIn
     val userProfile: StateFlow<UserProfile> = repository.userProfile
-    val transactions: StateFlow<List<Transaction>> = repository.transactions
     val students: StateFlow<List<Siswa>> = repository.students
     val paymentRecords: StateFlow<List<PaymentRecord>> = repository.paymentRecords
+    val pengeluaranList: StateFlow<List<Pengeluaran>> = repository.pengeluaranList
     val mataPelajaran: List<MataPelajaran> = repository.mataPelajaran
 
     val totalIncome: Long
-        get() = transactions.value.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
+        get() = paymentRecords.value.sumOf { it.jumlah }
 
     val totalExpense: Long
-        get() = transactions.value.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+        get() = pengeluaranList.value.sumOf { it.jumlah }
 
     val saldo: Long
         get() = totalIncome - totalExpense
 
-    fun login(nameOrEmail: String, password: String) {
-        repository.login(nameOrEmail, password)
-    }
+    // Auth
+    fun login(email: String, password: String): String? = repository.login(email, password)
+    fun register(nama: String, email: String, nis: String, kelas: String, noHp: String, password: String): String? =
+        repository.register(nama, email, nis, kelas, noHp, password)
+    fun logout() = repository.logout()
 
-    fun register(nama: String, nis: String, kelas: String, noHp: String, password: String) {
-        repository.register(nama, nis, kelas, noHp, password)
-    }
+    // Student CRUD
+    fun addStudent(nama: String, peran: String): String? = repository.addStudent(nama, peran)
+    fun updateStudent(no: Int, nama: String, peran: String): String? = repository.updateStudent(no, nama, peran)
+    fun deleteStudent(no: Int) = repository.deleteStudent(no)
 
-    fun logout() {
-        repository.logout()
-    }
+    // Payments
+    fun processPayment(studentName: String, bulan: String, metode: String, jumlah: Long = 20000): String? =
+        repository.processPayment(studentName, bulan, metode, jumlah)
 
-    fun addTransaction(title: String, amount: Long, type: TransactionType) {
-        repository.addTransaction(title, amount, type)
-    }
+    // Pengeluaran
+    fun addPengeluaran(tanggal: String, jumlah: Long, keterangan: String): String? =
+        repository.addPengeluaran(tanggal, jumlah, keterangan)
+    fun updatePengeluaran(id: String, tanggal: String, jumlah: Long, keterangan: String) =
+        repository.updatePengeluaran(id, tanggal, jumlah, keterangan)
+    fun deletePengeluaran(id: String) = repository.deletePengeluaran(id)
 
-    fun deleteTransaction(id: String) {
-        repository.deleteTransaction(id)
-    }
-
-    fun resetData() {
-        repository.resetData()
-    }
-
-    fun generateReportText(): String {
-        return repository.generateReportText()
-    }
-
-    fun getCurrentDateString(): String {
-        return repository.getCurrentDateString()
-    }
+    // Misc
+    fun resetData() = repository.resetData()
+    fun generateReportText(): String = repository.generateReportText()
+    fun getCurrentDateString(): String = repository.getCurrentDateString()
 
     companion object {
         fun formatRupiah(amount: Long): String {
