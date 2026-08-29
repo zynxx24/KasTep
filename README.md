@@ -15,7 +15,7 @@
 
 - [🎯 Latar Belakang & Tujuan Project](#-latar-belakang--tujuan-project)
 - [💾 Mekanisme Penyimpanan Data Lokal HP](#-mekanisme-penyimpanan-data-lokal-hp)
-- [❓ Pertanyaan Umum & FAQ (QnA)](#-pertanyaan-umum--faq-qna)
+- [❓ Pertanyaan Umum & FAQ (QnA dengan Kode Langsung)](#-pertanyaan-umum--faq-qna-dengan-kode-langsung)
 - [✨ Fitur-Fitur Utama](#-fitur-fitur-utama)
 - [🔐 Hak Akses & Multi-Role (Admin & User)](#-hak-akses--multi-role-admin--user)
 - [🏛️ Arsitektur Aplikasi & Design System](#️-arsitektur-aplikasi--design-system)
@@ -46,47 +46,226 @@ Seluruh data pengguna, registrasi akun, riwayat transaksi pembayaran, pengeluara
   `/data/data/com.kastep.app/shared_prefs/kastep_prefs.xml`
 - **Mode Akses**: `Context.MODE_PRIVATE` (Akses eksklusif hanya oleh paket aplikasi KASTEP).
 
-### 🔒 Keamanan & Perizinan (Permissions)
-- **Zero Runtime Permissions**: Menggunakan internal sandboxed storage Android, sehingga aplikasi **tidak memerlukan konfirmasi izin file/storage** dari pengguna.
+---
+
+## ❓ Pertanyaan Umum & FAQ (QnA dengan Kode Langsung)
+
+Berikut adalah pertanyaan umum seputar teknis dan implementasi beserta **potongan kode Kotlin asli** yang mengatur logika masing-masing fitur:
 
 ---
 
-## ❓ Pertanyaan Umum & FAQ (QnA)
+### Q1: Di mana dan bagaimana data aplikasi ini disimpan di lokal HP?
+> **Penjelasan**: Data disimpan menggunakan Android `SharedPreferences` yang di-serialize ke format JSON menggunakan library `Gson`.
+>
+> 💻 **Kode Pembuat Storage Engine (`KastepRepository.kt`)**:
+```kotlin
+private val prefs: SharedPreferences = 
+    context.getSharedPreferences("kastep_prefs", Context.MODE_PRIVATE)
 
-### Q1: Di mana data aplikasi ini disimpan?
-> **Jawaban**: Data disimpan secara internal di memori lokal perangkat (HP) melalui Android `SharedPreferences` dalam format serialized JSON di file `/data/data/com.kastep.app/shared_prefs/kastep_prefs.xml`.
+private fun saveSiswaList(list: List<Siswa>) {
+    val json = gson.toJson(list)
+    prefs.edit().putString(KEY_SISWA, json).apply()
+}
 
-### Q2: Apa yang terjadi jika data aplikasi atau cache dihapus di Pengaturan HP?
-> **Jawaban**: Jika pengguna melakukan **"Hapus Data / Clear Storage"** pada aplikasi di menu Pengaturan Android, maka seluruh data yang tersimpan akan terhapus dan aplikasi akan kembali ke **kondisi awal (reset dari 0 / data initial 33 siswa standar)**.
+private fun loadSiswaList(): List<Siswa> {
+    val json = prefs.getString(KEY_SISWA, null) ?: return getInitialSiswaList()
+    val type = object : TypeToken<List<Siswa>>() {}.type
+    return gson.fromJson(json, type) ?: getInitialSiswaList()
+}
+```
 
-### Q3: Berapa akun Administrator bawaan dan bagaimana cara masuk sebagai Admin?
-> **Jawaban**: Terdapat akun Administrator default yang dapat digunakan untuk login:
-> - **Email Admin**: `admin@gmail.com`
-> - **Password Admin**: `admin123`
+---
 
-### Q4: Bagaimana cara pendaftaran akun baru (User)?
-> **Jawaban**: Pengguna baru dapat menekan tombol **Register** pada halaman Login, lalu mengisi Nama, Email, NIS, Kelas, No HP, dan Password. Akun baru yang terdaftar akan otomatis memiliki role `User`.
+### Q2: Apa yang terjadi jika "Clear Data / Storage" dilakukan di Pengaturan Android?
+> **Penjelasan**: Jika data dihapus dari OS Android, file `kastep_prefs.xml` hilang. Saat aplikasi dibuka kembali, fungsi `loadSiswaList()` mendeteksi `json == null` dan otomatis me-load data initial standar 33 siswa (reset dari 0).
+>
+> 💻 **Kode Fallback Data Initial (`KastepRepository.kt`)**:
+```kotlin
+private fun loadSiswaList(): List<Siswa> {
+    val json = prefs.getString(KEY_SISWA, null) ?: return getInitialSiswaList()
+    // Jika file terhapus, fungsi di atas mengembalikan getInitialSiswaList()
+}
+```
 
-### Q5: Berapa nominal iuran kas per bulan dan apa saja metode pembayarannya?
-> **Jawaban**: Nominal iuran kas ditetapkan **Rp 20.000 / bulan**. Pilihan metode pembayaran mencakup:
-> - **QRIS**: Merchant resmi KAS XII PPLG.
-> - **E-Wallet**: DANA, GoPay, OVO (`0895-2037-1942`).
-> - **Bank Transfer**: BCA (`7340-5812-9076`), Mandiri (`1280-0045-6789-012`), BNI (`0912-3456-7890`).
-> - **CASH (Tunai)**: Pembayaran tunai langsung ke Bendahara.
+---
 
-### Q6: Bagaimana sistem konfirmasi otomatis ke WhatsApp bekerja?
-> **Jawaban**: Setelah proses simulasi pembayaran selesai (baik CASH, Transfer, maupun QRIS), aplikasi secara otomatis membuka WhatsApp dan menyusun pesan konfirmasi ke nomor **`+62 895-2037-1942`** berisi rincian: Nama Siswa, Bulan Pembayaran, Nominal (Rp 20.000), dan Metode Pembayaran.
+### Q3: Bagaimana logika autentikasi dan akun Admin default ditentukan?
+> **Penjelasan**: Akun administrator default hardcoded untuk email `admin@gmail.com` dan password `admin123` dengan role `UserRole.ADMIN`. Pengguna lain diperiksa dari daftar akun registered.
+>
+> 💻 **Kode Autentikasi Login (`KastepRepository.kt`)**:
+```kotlin
+fun login(email: String, pass: String): Pair<Boolean, String> {
+    val cleanEmail = email.trim()
+    val cleanPass = pass.trim()
 
-### Q7: Apakah data siswa dan pengeluaran kas dapat ditambah, di-edit, atau dihapus?
-> **Jawaban**: **Ya**. 
-> - **Data Siswa**: Pada menu *Data Siswa*, Anda dapat menambah siswa baru, menekan baris siswa untuk mengedit nama/peran, serta menghapus siswa dengan re-numbering otomatis.
-> - **Pengeluaran Kas**: Pada menu *Pengeluaran Kas*, Anda dapat menambah pengeluaran baru, melihat riwayat pengeluaran, serta mengedit atau menghapus entri pengeluaran yang pernah dicatat.
+    // Built-in Admin Account
+    if (cleanEmail.equals("admin@gmail.com", ignoreCase = true) && cleanPass == "admin123") {
+        val adminProfile = UserProfile(
+            nama = "Administrator",
+            email = "admin@gmail.com",
+            role = UserRole.ADMIN
+        )
+        saveUserProfile(adminProfile)
+        _userProfile.value = adminProfile
+        return Pair(true, "Login Admin Berhasil")
+    }
+    
+    // Regular Registered Users Check...
+}
+```
 
-### Q8: Mengapa kartu pada Laporan Kas bisa diklik?
-> **Jawaban**: Kartu laporan kas dirancang interaktif:
-> - **Periode Dropdown**: Bisa diklik untuk memfilter laporan berdasarkan *Juli 2026*, *Agustus 2026*, atau *Semua Periode*.
-> - **Total Pemasukan**: Jika diklik, akan memunculkan dialog rincian **daftar siswa yang Lunas (`✓`) dan Belum Lunas (`✗`)**.
-> - **Total Pengeluaran**: Jika diklik, akan memunculkan dialog rincian **seluruh item pengeluaran kas beserta nominalnya**.
+---
+
+### Q4: Bagaimana cara pendaftaran (Register) akun pengguna baru?
+> **Penjelasan**: Validasi memeriksa format email, kelengkapan nama, dan panjang password minimal 5 karakter. Jika valid, profil disimpan di `SharedPreferences`.
+>
+> 💻 **Kode Pendaftaran User Baru (`KastepRepository.kt`)**:
+```kotlin
+fun registerUser(nama: String, email: String, nis: String, kelas: String, noHp: String, pass: String): Pair<Boolean, String> {
+    if (nama.isBlank() || email.isBlank() || pass.isBlank()) {
+        return Pair(false, "Semua field bertanda * wajib diisi!")
+    }
+    if (!email.contains("@") || !email.contains(".")) {
+        return Pair(false, "Format email tidak valid!")
+    }
+    if (pass.length < 5) {
+        return Pair(false, "Password minimal 5 karakter!")
+    }
+    val newUser = UserProfile(nama = nama, email = email, nis = nis, kelas = kelas, noHp = noHp, password = pass, role = UserRole.USER)
+    // Simpan ke daftar registered users
+    saveRegisteredUser(newUser)
+    return Pair(true, "Registrasi berhasil! Silakan login.")
+}
+```
+
+---
+
+### Q5: Berapa nominal kas bulanan dan bagaimana status pembayaran siswa diupdate?
+> **Penjelasan**: Nominal kas ditetapkan **Rp 20.000 / bulan**. Saat pembayaran sukses diproses, fungsi `processPayment` memperbarui status iuran siswa (Juli / Agustus) dari `BELUM` menjadi `LUNAS` dan menambah catatan riwayat transaksi.
+>
+> 💻 **Kode Pemrosesan Pembayaran (`KastepRepository.kt`)**:
+```kotlin
+fun processPayment(namaSiswa: String, bulan: String, metode: String, jumlah: Long = 20000L): Boolean {
+    val currentSiswa = _siswaList.value.toMutableList()
+    val index = currentSiswa.indexOfFirst { it.nama.equals(namaSiswa, ignoreCase = true) }
+    if (index != -1) {
+        val s = currentSiswa[index]
+        val updated = if (bulan.contains("Juli", ignoreCase = true)) {
+            s.copy(statusJuli = StatusBayar.LUNAS)
+        } else {
+            s.copy(statusAgustus = StatusBayar.LUNAS)
+        }
+        currentSiswa[index] = updated
+        saveSiswaList(currentSiswa)
+        _siswaList.value = currentSiswa
+
+        // Tambah ke riwayat transaksi
+        val record = PaymentRecord(
+            no = _paymentRecords.value.size + 1,
+            tanggal = getCurrentDate(),
+            namaSiswa = namaSiswa,
+            jumlah = jumlah,
+            bulan = bulan,
+            metode = metode
+        )
+        addPaymentRecord(record)
+        return true
+    }
+    return false
+}
+```
+
+---
+
+### Q6: Bagaimana mekanisme Auto-Confirmation ke WhatsApp?
+> **Penjelasan**: Menggunakan `Intent.ACTION_VIEW` dengan URL schema `https://api.whatsapp.com/send` menyasar nomor WhatsApp **`+62 895-2037-1942`**.
+>
+> 💻 **Kode Konfirmasi WhatsApp (`PembayaranScreen.kt`)**:
+```kotlin
+val targetWa = "+6289520371942"
+val message = "Halo Admin Kas KASTEP,\nSaya telah melakukan pembayaran kas kelas XII PPLG:\n\n" +
+              "👤 Nama: $selectedStudent\n" +
+              "📅 Bulan: $selectedMonth\n" +
+              "💰 Nominal: Rp ${KastepViewModel.formatRupiah(20000)}\n" +
+              "💳 Metode: $selectedMethod\n\nMohon konfirmasinya. Terima kasih!"
+
+val encodedMsg = URLEncoder.encode(message, "UTF-8")
+val waUrl = "https://api.whatsapp.com/send?phone=$targetWa&text=$encodedMsg"
+val intent = Intent(Intent.ACTION_VIEW, Uri.parse(waUrl))
+context.startActivity(intent)
+```
+
+---
+
+### Q7: Bagaimana fungsi CRUD (Tambah, Edit, Hapus) Siswa & Pengeluaran?
+> **Penjelasan**: Semua operasi CRUD langsung meng-update `StateFlow` dan melakukan persistence otomatis ke `SharedPreferences`.
+>
+> 💻 **Kode CRUD Siswa & Pengeluaran (`KastepRepository.kt`)**:
+```kotlin
+// Tambah Siswa
+fun addSiswa(nama: String, peran: String, noHp: String) {
+    val current = _siswaList.value.toMutableList()
+    val newSiswa = Siswa(no = current.size + 1, nama = nama, peran = peran, noHp = noHp, statusJuli = StatusBayar.BELUM, statusAgustus = StatusBayar.BELUM)
+    current.add(newSiswa)
+    saveSiswaList(current)
+    _siswaList.value = current
+}
+
+// Hapus Siswa (dengan Auto Re-numbering)
+fun deleteSiswa(siswa: Siswa) {
+    val current = _siswaList.value.filter { it.no != siswa.no }.mapIndexed { idx, s -> s.copy(no = idx + 1) }
+    saveSiswaList(current)
+    _siswaList.value = current
+}
+
+// Edit Pengeluaran Kas
+fun updatePengeluaran(pengeluaran: Pengeluaran) {
+    val current = _pengeluaranList.value.toMutableList()
+    val idx = current.indexOfFirst { it.id == pengeluaran.id }
+    if (idx != -1) {
+        current[idx] = pengeluaran
+        savePengeluaranList(current)
+        _pengeluaranList.value = current
+    }
+}
+```
+
+---
+
+### Q8: Bagaimana kartu Laporan Kas dapat diklik untuk menampilkan detail breakdown?
+> **Penjelasan**: Kartu Total Pemasukan dan Pengeluaran dipasang Modifier `clickable` untuk membuka state dialog detail (`showPemasukanDetailDialog` & `showPengeluaranDetailDialog`).
+>
+> 💻 **Kode Dialog Clickable Laporan (`LaporanKasScreen.kt`)**:
+```kotlin
+// Card Total Pemasukan Clickable
+Card(
+    modifier = Modifier
+        .weight(1f)
+        .clickable { showPemasukanDetailDialog = true },
+    colors = CardDefaults.cardColors(containerColor = KastepCardDark)
+) {
+    // Menampilkan total Pemasukan & label "(Klik detail)"
+}
+
+// Dialog Detail Pemasukan (Status Siswa Lunas vs Belum)
+if (showPemasukanDetailDialog) {
+    AlertDialog(
+        onDismissRequest = { showPemasukanDetailDialog = false },
+        title = { Text("Detail Pemasukan Kas ($selectedPeriod)") },
+        text = {
+            LazyColumn {
+                items(siswaList) { s ->
+                    Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(s.nama)
+                        Text(if (isLunas) "LUNAS (✓)" else "BELUM (✗)")
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { showPemasukanDetailDialog = false }) { Text("Tutup") } }
+    )
+}
+```
 
 ---
 
@@ -154,13 +333,6 @@ Aplikasi dibangun menggunakan arsitektur **MVVM (Model-View-ViewModel)** dengan 
  └─────────────────────────────────────────────────────────────┘
 ```
 
-### Palette Color Tokens:
-- **Background**: Pure Black (`#000000`)
-- **Accent Primary**: Cyan (`#00D4FF`) & Blue (`#4A90D9`)
-- **Status Success**: Green (`#4CAF50`)
-- **Status Warning/Expense**: Red (`#EF5350`)
-- **Surface Cards**: Dark Navy (`#1A1A2E`, `#16213E`)
-
 ---
 
 ## 📂 Struktur Direktori Proyek
@@ -199,46 +371,6 @@ cd /home/wira/Documents/kastep && JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 .
 ```
 
 Output file `KASTEP.apk` akan otomatis disalin ke direktori utama proyek.
-
----
-
-## 📊 Data Initial 33 Siswa XII PPLG
-
-| No | Nama Siswa | Peran | Status Juli 2026 | Status Agustus 2026 |
-|---|---|---|:---:|:---:|
-| 1 | BOYKE VILANO HAMONANGAN SIHITE | Ketua Kelas | Lunas (V) | Lunas (V) |
-| 2 | BINTANG LEONITA CHRISTYA RENATA | Bendahara | Lunas (V) | Lunas (V) |
-| 3 | CAROLINA TIMUTHY JANGGUR | Sekretaris | Lunas (V) | Lunas (V) |
-| 4 | DEWA GEDE DALEM OKA ADNYANA SANDI | Wakil Ketua | Lunas (V) | Lunas (V) |
-| 5 | GALISTAN RAMADHAN KURNIA TAUNAES | Anggota | Lunas (V) | Lunas (V) |
-| 6 | GEDE AGUS WIRA DARMA PUTRA | Anggota | Lunas (V) | Lunas (V) |
-| 7 | I GEDE ABI WIRYA DINATA | Anggota | Lunas (V) | Lunas (V) |
-| 8 | I GEDE DARMA SUPTIAWAN | Anggota | Lunas (V) | Lunas (V) |
-| 9 | I KOMANG RADITYA PUTRA | Anggota | Lunas (V) | Lunas (V) |
-| 10 | I KOMANG RISKI SETIAWAN | Anggota | Lunas (V) | Lunas (V) |
-| 11 | I NYOMAN GEDE ARTA WIGUNA | Anggota | Lunas (V) | Lunas (V) |
-| 12 | I PUTU DIKA LAKSMANA PUTRA | Anggota | Lunas (V) | Lunas (V) |
-| 13 | I PUTU DITYA ARTHA WIJAYA | Anggota | Lunas (V) | Lunas (V) |
-| 14 | I PUTU PANDE ANDIKA | Anggota | Lunas (V) | Lunas (V) |
-| 15 | I PUTU SUYOGA MAHENDRA | Anggota | Lunas (V) | Lunas (V) |
-| 16 | I WAYAN BAGUS PUTRAWAN | Anggota | Lunas (V) | Lunas (V) |
-| 17 | I WAYAN PASEK KEVIN ARIADI | Anggota | Lunas (V) | Lunas (V) |
-| 18 | KADEK YUDA PRASETYA | Anggota | Lunas (V) | Lunas (V) |
-| 19 | KADEK YUNI CALLISTA PUTRI DEWI | Anggota | Lunas (V) | Lunas (V) |
-| 20 | KOMANG DIAH PUTRI PRATIWI | Anggota | Lunas (V) | Lunas (V) |
-| 21 | LUH RIA MIRASIH | Anggota | Lunas (V) | Lunas (V) |
-| 22 | NI KADEK ADELIA CAHYA KENCANA PUTRI | Anggota | Lunas (V) | Lunas (V) |
-| 23 | NI KADEK LINA ANTIKA DEWI | Anggota | Lunas (V) | Belum (X) |
-| 24 | NI KOMANG KIRANA PARAMITA ARDANARI | Anggota | Lunas (V) | Belum (X) |
-| 25 | NI KOMANG SEPTIARINI | Anggota | Lunas (V) | Belum (X) |
-| 26 | NI LUH PUTU KESYA ASTRI MELANI | Anggota | Lunas (V) | Belum (X) |
-| 27 | NI PUTU CAHAYA LESTARI DEWI | Anggota | Lunas (V) | Belum (X) |
-| 28 | NI PUTU INTAN LESTARI DARMAYANTI | Anggota | Lunas (V) | Belum (X) |
-| 29 | OKTA PRADIPTA ATTALA DZAKI | Anggota | Belum (X) | Belum (X) |
-| 30 | PUTU BAYU SATRIA WANGSA BUKIAN | Anggota | Belum (X) | Belum (X) |
-| 31 | PUTU NANDA LINDIA MAHARANI | Anggota | Belum (X) | Belum (X) |
-| 32 | PUTU PUTRI CAHYANI | Anggota | Belum (X) | Belum (X) |
-| 33 | RADITYA RONDI | Anggota | Belum (X) | Belum (X) |
 
 ---
 
