@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.kastep.app.data.KastepViewModel
 import com.kastep.app.data.Siswa
 import com.kastep.app.data.StatusBayar
+import com.kastep.app.data.UserRole
 import com.kastep.app.ui.theme.*
 
 @Composable
@@ -35,6 +36,7 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
     val students by viewModel.students.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
+    val isAdmin = userProfile.role == UserRole.ADMIN
 
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
@@ -70,7 +72,10 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
 
         Text("Jumlah Siswa : ${students.size}", color = KastepWhite, fontSize = 16.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 20.dp))
         Spacer(modifier = Modifier.height(4.dp))
-        Text("Tap baris siswa untuk edit/hapus", color = KastepGray, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 20.dp))
+        Text(
+            if (isAdmin) "Tap baris siswa untuk edit/hapus" else "Mode lihat saja (hanya Admin yang dapat mengelola)",
+            color = KastepGray, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 20.dp)
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -92,10 +97,10 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
                 students.forEach { siswa ->
                     Row(
                         modifier = Modifier.fillMaxWidth().horizontalScroll(hScroll)
-                            .clickable {
+                            .then(if (isAdmin) Modifier.clickable {
                                 selectedStudent = siswa
                                 showEditDialog = true
-                            }
+                            } else Modifier)
                             .padding(vertical = 10.dp, horizontal = 12.dp)
                     ) {
                         Text("${siswa.no}", color = KastepWhite, fontSize = 13.sp, modifier = Modifier.width(35.dp))
@@ -119,37 +124,39 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row {
-                TextButton(onClick = {
-                    if (selectedStudent != null) showEditDialog = true
-                }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = KastepWhite, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Edit", color = KastepWhite, fontSize = 14.sp)
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-                TextButton(onClick = {
-                    if (selectedStudent != null) showDeleteConfirm = true
-                }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = KastepWhite, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Hapus", color = KastepWhite, fontSize = 14.sp)
-                }
-            }
-
-            Button(
-                onClick = { showAddDialog = true },
-                colors = ButtonDefaults.buttonColors(containerColor = KastepBlue),
-                shape = RoundedCornerShape(20.dp)
+        if (isAdmin) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Tambah", tint = KastepWhite, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Tambah Siswa", color = KastepWhite, fontSize = 13.sp)
+                Row {
+                    TextButton(onClick = {
+                        if (selectedStudent != null) showEditDialog = true
+                    }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = KastepWhite, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Edit", color = KastepWhite, fontSize = 14.sp)
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    TextButton(onClick = {
+                        if (selectedStudent != null) showDeleteConfirm = true
+                    }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = KastepWhite, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Hapus", color = KastepWhite, fontSize = 14.sp)
+                    }
+                }
+
+                Button(
+                    onClick = { showAddDialog = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = KastepBlue),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Tambah", tint = KastepWhite, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Tambah Siswa", color = KastepWhite, fontSize = 13.sp)
+                }
             }
         }
 

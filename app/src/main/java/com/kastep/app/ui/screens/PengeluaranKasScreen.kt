@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kastep.app.data.KastepViewModel
 import com.kastep.app.data.Pengeluaran
+import com.kastep.app.data.UserRole
 import com.kastep.app.ui.theme.*
 
 @Composable
@@ -30,6 +31,7 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
     val userProfile by viewModel.userProfile.collectAsState()
     val pengeluaranList by viewModel.pengeluaranList.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
+    val isAdmin = userProfile.role == UserRole.ADMIN
 
     var tanggalHari by remember { mutableStateOf("") }
     var tanggalBulan by remember { mutableStateOf("") }
@@ -178,7 +180,7 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
             pengeluaranList.forEach { p ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp)
-                        .clickable { selectedPengeluaran = p; showEditDialog = true },
+                        .then(if (isAdmin) Modifier.clickable { selectedPengeluaran = p; showEditDialog = true } else Modifier),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A2E))
                 ) {
@@ -194,11 +196,13 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text("Rp ${KastepViewModel.formatRupiah(p.jumlah)}", color = KastepRed, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Row {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = KastepCyan, modifier = Modifier.size(18.dp).clickable { selectedPengeluaran = p; showEditDialog = true })
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = KastepRed, modifier = Modifier.size(18.dp).clickable { viewModel.deletePengeluaran(p.id) })
+                            if (isAdmin) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row {
+                                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = KastepCyan, modifier = Modifier.size(18.dp).clickable { selectedPengeluaran = p; showEditDialog = true })
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = KastepRed, modifier = Modifier.size(18.dp).clickable { viewModel.deletePengeluaran(p.id) })
+                                }
                             }
                         }
                     }

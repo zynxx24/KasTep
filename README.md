@@ -304,8 +304,9 @@ if (showPemasukanDetailDialog) {
 | Login & Register | ✅ | ✅ |
 | Dashboard Keuangan & Trend | ✅ | ✅ |
 | Pembayaran Kas & Simulasi WA | ✅ | ✅ |
-| Tambah / Edit / Hapus Data Siswa | ✅ | ✅ |
-| Tambah / Edit / Hapus Pengeluaran | ✅ | ✅ |
+| **Tambah / Edit / Hapus Data Siswa** | ✅ | ❌ (Lihat saja) |
+| **Tambah Pengeluaran Kas** | ✅ | ✅ |
+| **Edit / Hapus Pengeluaran Kas** | ✅ | ❌ (Lihat saja) |
 | Filter & Detail Laporan Kas | ✅ | ✅ |
 | Badge Indikator Role | `Admin` | `User` |
 
