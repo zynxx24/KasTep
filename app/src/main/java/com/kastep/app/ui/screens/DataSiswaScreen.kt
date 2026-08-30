@@ -127,27 +127,9 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
         if (isAdmin) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row {
-                    TextButton(onClick = {
-                        if (selectedStudent != null) showEditDialog = true
-                    }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = KastepWhite, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Edit", color = KastepWhite, fontSize = 14.sp)
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    TextButton(onClick = {
-                        if (selectedStudent != null) showDeleteConfirm = true
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = KastepWhite, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Hapus", color = KastepWhite, fontSize = 14.sp)
-                    }
-                }
-
                 Button(
                     onClick = { showAddDialog = true },
                     colors = ButtonDefaults.buttonColors(containerColor = KastepBlue),

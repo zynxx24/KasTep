@@ -68,107 +68,109 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Error/Success messages
-        if (errorMsg != null) {
-            Text(errorMsg!!, color = KastepRed, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 20.dp)
-                .fillMaxWidth().background(KastepRed.copy(alpha = 0.1f), RoundedCornerShape(8.dp)).padding(12.dp))
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-        if (successMsg != null) {
-            Text(successMsg!!, color = KastepGreen, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 20.dp)
-                .fillMaxWidth().background(KastepGreen.copy(alpha = 0.1f), RoundedCornerShape(8.dp)).padding(12.dp))
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+        if (isAdmin) {
+            // Error/Success messages
+            if (errorMsg != null) {
+                Text(errorMsg!!, color = KastepRed, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 20.dp)
+                    .fillMaxWidth().background(KastepRed.copy(alpha = 0.1f), RoundedCornerShape(8.dp)).padding(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            if (successMsg != null) {
+                Text(successMsg!!, color = KastepGreen, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 20.dp)
+                    .fillMaxWidth().background(KastepGreen.copy(alpha = 0.1f), RoundedCornerShape(8.dp)).padding(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-        // Tanggal
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            Text("Tanggal", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Tanggal
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                Text("Tanggal", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = tanggalHari, onValueChange = { if (it.length <= 2) tanggalHari = it },
+                        modifier = Modifier.weight(0.8f).height(56.dp), placeholder = { Text("DD") },
+                        colors = textFieldColors, shape = RoundedCornerShape(12.dp), singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                    OutlinedTextField(
+                        value = tanggalBulan, onValueChange = { if (it.length <= 2) tanggalBulan = it },
+                        modifier = Modifier.weight(1.2f).height(56.dp), placeholder = { Text("MM") },
+                        colors = textFieldColors, shape = RoundedCornerShape(12.dp), singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                    OutlinedTextField(
+                        value = tanggalTahun, onValueChange = { if (it.length <= 4) tanggalTahun = it },
+                        modifier = Modifier.weight(1.2f).height(56.dp), placeholder = { Text("YYYY") },
+                        colors = textFieldColors, shape = RoundedCornerShape(12.dp), singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Jumlah
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                Text("Jumlah", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
-                    value = tanggalHari, onValueChange = { if (it.length <= 2) tanggalHari = it },
-                    modifier = Modifier.weight(0.8f).height(56.dp), placeholder = { Text("DD") },
-                    colors = textFieldColors, shape = RoundedCornerShape(12.dp), singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                OutlinedTextField(
-                    value = tanggalBulan, onValueChange = { if (it.length <= 2) tanggalBulan = it },
-                    modifier = Modifier.weight(1.2f).height(56.dp), placeholder = { Text("MM") },
-                    colors = textFieldColors, shape = RoundedCornerShape(12.dp), singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                OutlinedTextField(
-                    value = tanggalTahun, onValueChange = { if (it.length <= 4) tanggalTahun = it },
-                    modifier = Modifier.weight(1.2f).height(56.dp), placeholder = { Text("YYYY") },
-                    colors = textFieldColors, shape = RoundedCornerShape(12.dp), singleLine = true,
+                    value = jumlah, onValueChange = { jumlah = it; errorMsg = null; successMsg = null },
+                    modifier = Modifier.fillMaxWidth().height(56.dp), placeholder = { Text("Rp 0") },
+                    colors = textFieldColors, shape = RoundedCornerShape(28.dp), singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Jumlah
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            Text("Jumlah", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(12.dp))
-            OutlinedTextField(
-                value = jumlah, onValueChange = { jumlah = it; errorMsg = null; successMsg = null },
-                modifier = Modifier.fillMaxWidth().height(56.dp), placeholder = { Text("Rp 0") },
-                colors = textFieldColors, shape = RoundedCornerShape(28.dp), singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-        }
+            // Keterangan
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                Text("Keterangan", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = keterangan, onValueChange = { keterangan = it; errorMsg = null; successMsg = null },
+                    modifier = Modifier.fillMaxWidth().height(120.dp), placeholder = { Text("Keterangan pengeluaran") },
+                    colors = textFieldColors, shape = RoundedCornerShape(20.dp), maxLines = 5
+                )
+            }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Keterangan
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            Text("Keterangan", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(12.dp))
-            OutlinedTextField(
-                value = keterangan, onValueChange = { keterangan = it; errorMsg = null; successMsg = null },
-                modifier = Modifier.fillMaxWidth().height(120.dp), placeholder = { Text("Keterangan pengeluaran") },
-                colors = textFieldColors, shape = RoundedCornerShape(20.dp), maxLines = 5
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Submit button
-        Button(
-            onClick = {
-                val amount = jumlah.toLongOrNull() ?: 0L
-                val tanggal = if (tanggalHari.isNotBlank() && tanggalBulan.isNotBlank() && tanggalTahun.isNotBlank())
-                    "$tanggalHari/$tanggalBulan/$tanggalTahun" else currentDate
-                val result = viewModel.addPengeluaran(tanggal, amount, keterangan)
-                if (result != null) {
-                    errorMsg = result; successMsg = null
-                } else {
-                    successMsg = "Pengeluaran berhasil ditambahkan!"
-                    errorMsg = null
-                    tanggalHari = ""; tanggalBulan = ""; tanggalTahun = ""
-                    jumlah = ""; keterangan = ""
-                }
-            },
-            modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 32.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize()
-                    .background(Brush.horizontalGradient(listOf(GradientBlueStart, GradientBlueEnd)), RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
+            // Submit button
+            Button(
+                onClick = {
+                    val amount = jumlah.toLongOrNull() ?: 0L
+                    val tanggal = if (tanggalHari.isNotBlank() && tanggalBulan.isNotBlank() && tanggalTahun.isNotBlank())
+                        "$tanggalHari/$tanggalBulan/$tanggalTahun" else currentDate
+                    val result = viewModel.addPengeluaran(tanggal, amount, keterangan)
+                    if (result != null) {
+                        errorMsg = result; successMsg = null
+                    } else {
+                        successMsg = "Pengeluaran berhasil ditambahkan!"
+                        errorMsg = null
+                        tanggalHari = ""; tanggalBulan = ""; tanggalTahun = ""
+                        jumlah = ""; keterangan = ""
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 32.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = KastepWhite, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Tambah Pengeluaran", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                        .background(Brush.horizontalGradient(listOf(GradientBlueStart, GradientBlueEnd)), RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Add, contentDescription = null, tint = KastepWhite, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Tambah Pengeluaran", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+        }
 
         // Riwayat Pengeluaran List
         Text("Riwayat Pengeluaran", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 20.dp))
