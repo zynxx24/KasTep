@@ -33,7 +33,7 @@ import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
+fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
     val userProfile by viewModel.userProfile.collectAsState()
     val students by viewModel.students.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
@@ -49,7 +49,7 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().background(KastepBlack).verticalScroll(rememberScrollState())
     ) {
-        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer)
+        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer, onNavigateToProfile = onNavigateToProfile)
         Spacer(modifier = Modifier.height(12.dp))
 
         Text("Pembayaran", color = KastepWhite, fontSize = 22.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 20.dp))

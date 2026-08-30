@@ -27,7 +27,7 @@ import com.kastep.app.data.UserRole
 import com.kastep.app.ui.theme.*
 
 @Composable
-fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
+fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
     val userProfile by viewModel.userProfile.collectAsState()
     val pengeluaranList by viewModel.pengeluaranList.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
@@ -54,7 +54,7 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().background(KastepBlack).verticalScroll(rememberScrollState())
     ) {
-        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer)
+        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer, onNavigateToProfile = onNavigateToProfile)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             Box(
@@ -139,9 +139,46 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
             // Submit button
             Button(
                 onClick = {
+                    val day = tanggalHari.toIntOrNull()
+                    val month = tanggalBulan.toIntOrNull()
+                    val year = tanggalTahun.toIntOrNull()
                     val amount = jumlah.toLongOrNull() ?: 0L
-                    val tanggal = if (tanggalHari.isNotBlank() && tanggalBulan.isNotBlank() && tanggalTahun.isNotBlank())
-                        "$tanggalHari/$tanggalBulan/$tanggalTahun" else currentDate
+
+                    if (tanggalHari.isBlank() || tanggalBulan.isBlank() || tanggalTahun.isBlank()) {
+                        errorMsg = "Tanggal (DD/MM/YYYY) harus diisi lengkap"
+                        successMsg = null
+                        return@Button
+                    }
+                    if (day == null || day !in 1..31) {
+                        errorMsg = "Hari (DD) harus berupa angka 01 - 31"
+                        successMsg = null
+                        return@Button
+                    }
+                    if (month == null || month !in 1..12) {
+                        errorMsg = "Bulan (MM) harus berupa angka 01 - 12"
+                        successMsg = null
+                        return@Button
+                    }
+                    if (year == null || year < 2020 || year > 2100) {
+                        errorMsg = "Tahun (YYYY) tidak valid (contoh: 2026)"
+                        successMsg = null
+                        return@Button
+                    }
+                    if (amount <= 0) {
+                        errorMsg = "Jumlah pengeluaran harus lebih dari Rp 0"
+                        successMsg = null
+                        return@Button
+                    }
+                    if (keterangan.isBlank()) {
+                        errorMsg = "Keterangan pengeluaran tidak boleh kosong"
+                        successMsg = null
+                        return@Button
+                    }
+
+                    val formattedDay = String.format("%02d", day)
+                    val formattedMonth = String.format("%02d", month)
+                    val tanggal = "$formattedDay/$formattedMonth/$year"
+
                     val result = viewModel.addPengeluaran(tanggal, amount, keterangan)
                     if (result != null) {
                         errorMsg = result; successMsg = null

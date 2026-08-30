@@ -55,7 +55,8 @@ import com.kastep.app.ui.theme.KastepWhite
 @Composable
 fun ProfileScreen(
     viewModel: KastepViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onLogout: () -> Unit = {}
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
     var showEditDialog by remember { mutableStateOf(false) }
@@ -217,6 +218,7 @@ fun ProfileScreen(
                 TextButton(onClick = {
                     viewModel.logout()
                     showLogoutConfirm = false
+                    onLogout()
                 }) { Text("Keluar", color = KastepRed) }
             },
             dismissButton = {

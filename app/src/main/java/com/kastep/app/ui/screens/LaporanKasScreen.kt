@@ -33,7 +33,7 @@ import com.kastep.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
+fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
     val userProfile by viewModel.userProfile.collectAsState()
     val students by viewModel.students.collectAsState()
     val paymentRecords by viewModel.paymentRecords.collectAsState()
@@ -62,7 +62,10 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
                 Icon(Icons.Default.Menu, contentDescription = "Menu", tint = KastepWhite, modifier = Modifier.size(28.dp))
             }
             Text("Laporan kas", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onNavigateToProfile() }
+            ) {
                 Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(KastepGray), contentAlignment = Alignment.Center) {
                     Icon(Icons.Default.Person, contentDescription = "Profile", tint = KastepWhite, modifier = Modifier.size(20.dp))
                 }

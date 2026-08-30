@@ -46,7 +46,8 @@ import com.kastep.app.ui.theme.KastepWhite
 @Composable
 fun RiwayatPembayaranScreen(
     viewModel: KastepViewModel,
-    onOpenDrawer: () -> Unit
+    onOpenDrawer: () -> Unit,
+    onNavigateToProfile: () -> Unit = {}
 ) {
     val paymentRecords by viewModel.paymentRecords.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
@@ -66,7 +67,7 @@ fun RiwayatPembayaranScreen(
             .background(KastepBlack)
     ) {
         // Top bar
-        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer)
+        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer, onNavigateToProfile = onNavigateToProfile)
 
         // Title section
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {

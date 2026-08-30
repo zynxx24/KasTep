@@ -46,6 +46,7 @@ import com.kastep.app.ui.theme.KastepWhite
 fun PembayaranBerhasilScreen(
     viewModel: KastepViewModel,
     onOpenDrawer: () -> Unit,
+    onNavigateToProfile: () -> Unit = {},
     onKembali: () -> Unit
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
@@ -58,7 +59,7 @@ fun PembayaranBerhasilScreen(
             .verticalScroll(rememberScrollState())
     ) {
         // Top bar
-        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer)
+        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer, onNavigateToProfile = onNavigateToProfile)
 
         // Confetti + SpongeBob area
         Box(

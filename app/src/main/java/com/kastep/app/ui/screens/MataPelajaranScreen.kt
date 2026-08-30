@@ -123,7 +123,8 @@ private val timeSlots = listOf(
 @Composable
 fun MataPelajaranScreen(
     viewModel: KastepViewModel,
-    onOpenDrawer: () -> Unit
+    onOpenDrawer: () -> Unit,
+    onNavigateToProfile: () -> Unit = {}
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
@@ -133,7 +134,7 @@ fun MataPelajaranScreen(
             .fillMaxSize()
             .background(KastepBlack)
     ) {
-        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer)
+        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer, onNavigateToProfile = onNavigateToProfile)
 
         Column(
             modifier = Modifier

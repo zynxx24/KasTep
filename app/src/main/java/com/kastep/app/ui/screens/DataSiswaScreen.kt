@@ -32,7 +32,7 @@ import com.kastep.app.data.UserRole
 import com.kastep.app.ui.theme.*
 
 @Composable
-fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
+fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
     val students by viewModel.students.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
@@ -44,7 +44,7 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit) {
     var selectedStudent by remember { mutableStateOf<Siswa?>(null) }
 
     Column(modifier = Modifier.fillMaxSize().background(KastepBlack)) {
-        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer)
+        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer, onNavigateToProfile = onNavigateToProfile)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             Box(
@@ -239,7 +239,7 @@ private fun StudentDialog(
 
 // Shared top bar
 @Composable
-fun TopBar(currentDate: String, userName: String, onMenuClick: () -> Unit) {
+fun TopBar(currentDate: String, userName: String, onMenuClick: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -253,7 +253,10 @@ fun TopBar(currentDate: String, userName: String, onMenuClick: () -> Unit) {
             Spacer(modifier = Modifier.width(6.dp))
             Text(text = currentDate, color = KastepWhite, fontSize = 14.sp)
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable { onNavigateToProfile() }
+        ) {
             Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(KastepGray), contentAlignment = Alignment.Center) {
                 Icon(Icons.Default.Person, contentDescription = "Profile", tint = KastepWhite, modifier = Modifier.size(20.dp))
             }
