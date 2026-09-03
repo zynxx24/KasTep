@@ -44,8 +44,10 @@ fun NavGraph(
     }
 
     val navigateToProfile: () -> Unit = {
-        navController.navigate(Screen.Profile.route) {
-            launchSingleTop = true
+        if (navController.currentDestination?.route != Screen.Profile.route) {
+            navController.navigate(Screen.Profile.route) {
+                launchSingleTop = true
+            }
         }
     }
 

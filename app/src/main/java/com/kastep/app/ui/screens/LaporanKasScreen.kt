@@ -64,7 +64,10 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
             Text("Laporan kas", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable { onNavigateToProfile() }
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable { onNavigateToProfile() }
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(KastepGray), contentAlignment = Alignment.Center) {
                     Icon(Icons.Default.Person, contentDescription = "Profile", tint = KastepWhite, modifier = Modifier.size(20.dp))

@@ -44,27 +44,7 @@ fun DashboardScreen(
 
     Column(modifier = Modifier.fillMaxSize().background(KastepBlack)) {
         // Top bar
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onOpenDrawer) {
-                Icon(Icons.Default.Menu, contentDescription = "Menu", tint = KastepWhite, modifier = Modifier.size(28.dp))
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.CalendarMonth, contentDescription = "Calendar", tint = KastepWhite, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(currentDate, color = KastepWhite, fontSize = 14.sp)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onNavigateToProfile() }) {
-                Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(KastepGray), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Person, contentDescription = "Profile", tint = KastepWhite, modifier = Modifier.size(20.dp))
-                }
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(userProfile.nama, color = KastepWhite, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            }
-        }
+        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer, onNavigateToProfile = onNavigateToProfile)
 
         // Dashboard title + role badge
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {

@@ -123,6 +123,7 @@ class KastepRepository(context: Context? = null) {
     }
 
     fun logout() {
+        _userProfile.value = UserProfile()
         _isLoggedIn.value = false
         saveToPrefs()
     }
@@ -369,17 +370,21 @@ class KastepRepository(context: Context? = null) {
         try {
             _isLoggedIn.value = prefs.getBoolean("is_logged_in", false)
 
-            prefs.getString("user_profile", null)?.let { str ->
-                val p = JSONObject(str)
-                _userProfile.value = UserProfile(
-                    nama = p.optString("nama", "Admin"),
-                    email = p.optString("email", ""),
-                    nis = p.optString("nis", ""),
-                    kelas = p.optString("kelas", "XII PPLG"),
-                    noHp = p.optString("noHp", ""),
-                    password = p.optString("password", ""),
-                    role = try { UserRole.valueOf(p.optString("role", "USER")) } catch (_: Exception) { UserRole.USER }
-                )
+            if (_isLoggedIn.value) {
+                prefs.getString("user_profile", null)?.let { str ->
+                    val p = JSONObject(str)
+                    _userProfile.value = UserProfile(
+                        nama = p.optString("nama", "Admin"),
+                        email = p.optString("email", ""),
+                        nis = p.optString("nis", ""),
+                        kelas = p.optString("kelas", "XII PPLG"),
+                        noHp = p.optString("noHp", ""),
+                        password = p.optString("password", ""),
+                        role = try { UserRole.valueOf(p.optString("role", "USER")) } catch (_: Exception) { UserRole.USER }
+                    )
+                }
+            } else {
+                _userProfile.value = UserProfile()
             }
 
             prefs.getString("students", null)?.let { str ->
