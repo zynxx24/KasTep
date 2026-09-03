@@ -5,7 +5,7 @@
 ![UI Framework](https://img.shields.io/badge/UI-Jetpack_Compose_Material3-purple.svg)
 ![Storage](https://img.shields.io/badge/Storage-Offline--First_(SharedPreferences)-orange.svg)
 ![Build Tool](https://img.shields.io/badge/Build-Gradle_(JDK_21)-darkgreen.svg)
-![Release](https://img.shields.io/badge/Release-v1.1.2-brightgreen.svg)
+![Release](https://img.shields.io/badge/Release-v1.2.0-brightgreen.svg)
 
 **KASTEP** adalah aplikasi manajemen kas dan keuangan kelas modern yang dirancang khusus untuk memenuhi kebutuhan pengelolaan keuangan kelas **XII PPLG**. Aplikasi ini mengkombinasikan antarmuka bertema **Pure Black** dengan aksen Cyan/Blue yang elegan, responsif, berkinerja tinggi berbasis **Jetpack Compose (Material3)** dan menerapkan pola arsitektur **Offline-First**.
 

@@ -156,6 +156,41 @@ class KastepRepository(context: Context? = null) {
 
     // ==================== PAYMENT ====================
 
+    companion object {
+        const val KAS_BULANAN = 20000L
+        const val DENDA_PER_BULAN = 5000L
+    }
+
+    /**
+     * Calculate late payment penalty (denda).
+     * Each month overdue = 5000 IDR.
+     * Juli due = month 7, Agustus due = month 8.
+     * Months late = currentMonth - dueMonth (clamped to >= 0).
+     */
+    fun calculateDenda(studentName: String, bulan: String): Long {
+        val siswa = _students.value.find { it.nama == studentName } ?: return 0L
+
+        // Check if already paid
+        val alreadyPaid = when {
+            bulan.contains("Juli") -> siswa.statusJuli == StatusBayar.LUNAS
+            bulan.contains("Agustus") -> siswa.statusAgustus == StatusBayar.LUNAS
+            else -> true
+        }
+        if (alreadyPaid) return 0L
+
+        val dueMonth = when {
+            bulan.contains("Juli") -> 7
+            bulan.contains("Agustus") -> 8
+            else -> return 0L
+        }
+
+        val calendar = java.util.Calendar.getInstance()
+        val currentMonth = calendar.get(java.util.Calendar.MONTH) + 1 // 1-indexed
+        val monthsLate = (currentMonth - dueMonth).coerceAtLeast(0)
+
+        return monthsLate * DENDA_PER_BULAN
+    }
+
     fun processPayment(studentName: String, bulan: String, metode: String, jumlah: Long): String? {
         if (studentName.isBlank()) return "Pilih siswa terlebih dahulu"
         if (bulan.isBlank()) return "Pilih bulan pembayaran"

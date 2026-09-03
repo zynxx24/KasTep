@@ -40,6 +40,8 @@ class KastepViewModel(application: Application) : AndroidViewModel(application) 
     // Payments
     fun processPayment(studentName: String, bulan: String, metode: String, jumlah: Long = 20000): String? =
         repository.processPayment(studentName, bulan, metode, jumlah)
+    fun calculateDenda(studentName: String, bulan: String): Long =
+        repository.calculateDenda(studentName, bulan)
 
     // Pengeluaran
     fun addPengeluaran(tanggal: String, jumlah: Long, keterangan: String): String? =

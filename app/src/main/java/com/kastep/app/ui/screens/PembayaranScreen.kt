@@ -45,6 +45,8 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
     var showSuccessDialog by remember { mutableStateOf(false) }
     var lastPaidStudent by remember { mutableStateOf("") }
     var lastPaidMonth by remember { mutableStateOf("") }
+    var lastPaidTotal by remember { mutableStateOf(0L) }
+    var lastPaidDenda by remember { mutableStateOf(0L) }
 
     Column(
         modifier = Modifier.fillMaxSize().background(KastepBlack).verticalScroll(rememberScrollState())
@@ -156,18 +158,20 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
     // Payment Dialog: select student + month
     if (showPaymentDialog) {
         PaymentConfirmDialog(
+            viewModel = viewModel,
             students = students,
             method = selectedMethod ?: "Cash",
             onDismiss = { showPaymentDialog = false },
-            onConfirm = { studentName, bulan ->
-                val result = viewModel.processPayment(studentName, bulan, selectedMethod ?: "Cash", 20000)
+            onConfirm = { studentName, bulan, totalBayar, denda ->
+                val result = viewModel.processPayment(studentName, bulan, selectedMethod ?: "Cash", totalBayar)
                 if (result == null) {
                     lastPaidStudent = studentName
                     lastPaidMonth = bulan
+                    lastPaidTotal = totalBayar
+                    lastPaidDenda = denda
                     showPaymentDialog = false
                     showSuccessDialog = true
-                    // WhatsApp auto confirmation
-                    sendWhatsAppConfirmation(context, studentName, bulan, selectedMethod ?: "Cash")
+                    sendWhatsAppConfirmation(context, studentName, bulan, selectedMethod ?: "Cash", totalBayar, denda)
                 }
             }
         )
@@ -195,7 +199,12 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
                     Text("Siswa: $lastPaidStudent")
                     Text("Bulan: $lastPaidMonth")
                     Text("Metode: ${selectedMethod ?: "Cash"}")
-                    Text("Nominal: Rp 20.000")
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Kas Bulanan: Rp ${KastepViewModel.formatRupiah(20000)}")
+                    if (lastPaidDenda > 0) {
+                        Text("Denda Telat: Rp ${KastepViewModel.formatRupiah(lastPaidDenda)}", color = Color(0xFFFF6B6B))
+                    }
+                    Text("Total Bayar: Rp ${KastepViewModel.formatRupiah(lastPaidTotal)}", fontWeight = FontWeight.Bold, color = KastepGreen)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("Konfirmasi telah dikirim ke WhatsApp.", color = KastepGreen, fontSize = 12.sp)
                 }
@@ -210,16 +219,23 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PaymentConfirmDialog(
+    viewModel: KastepViewModel,
     students: List<com.kastep.app.data.Siswa>,
     method: String,
     onDismiss: () -> Unit,
-    onConfirm: (String, String) -> Unit
+    onConfirm: (String, String, Long, Long) -> Unit
 ) {
     var selectedStudent by remember { mutableStateOf("") }
     var selectedBulan by remember { mutableStateOf("") }
     var expandedStudent by remember { mutableStateOf(false) }
     var expandedBulan by remember { mutableStateOf(false) }
     val bulanOptions = listOf("Juli 2026", "Agustus 2026")
+
+    val denda = if (selectedStudent.isNotBlank() && selectedBulan.isNotBlank()) {
+        viewModel.calculateDenda(selectedStudent, selectedBulan)
+    } else 0L
+    val kasBulanan = 20000L
+    val totalBayar = kasBulanan + denda
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -261,13 +277,25 @@ private fun PaymentConfirmDialog(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("Nominal: Rp 20.000", fontWeight = FontWeight.Bold, color = KastepGreen)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Payment breakdown
+                Text("Kas Bulanan: Rp ${KastepViewModel.formatRupiah(kasBulanan)}", fontWeight = FontWeight.Medium)
+                if (denda > 0) {
+                    val monthsLate = denda / 5000
+                    Text(
+                        "Denda ($monthsLate bulan telat): Rp ${KastepViewModel.formatRupiah(denda)}",
+                        color = Color(0xFFFF6B6B), fontWeight = FontWeight.Medium
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Total Bayar: Rp ${KastepViewModel.formatRupiah(totalBayar)}", fontWeight = FontWeight.Bold, color = KastepGreen, fontSize = 16.sp)
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { if (selectedStudent.isNotBlank() && selectedBulan.isNotBlank()) onConfirm(selectedStudent, selectedBulan) },
+                onClick = { if (selectedStudent.isNotBlank() && selectedBulan.isNotBlank()) onConfirm(selectedStudent, selectedBulan, totalBayar, denda) },
                 enabled = selectedStudent.isNotBlank() && selectedBulan.isNotBlank()
             ) { Text("Bayar Sekarang") }
         },
@@ -310,13 +338,16 @@ private fun QrisSimulationDialog(onDismiss: () -> Unit, onProceed: () -> Unit) {
     )
 }
 
-private fun sendWhatsAppConfirmation(context: Context, studentName: String, bulan: String, method: String) {
+private fun sendWhatsAppConfirmation(context: Context, studentName: String, bulan: String, method: String, totalBayar: Long, denda: Long) {
     val phone = "6289520371942"
+    val dendaLine = if (denda > 0) "Denda Telat: Rp ${KastepViewModel.formatRupiah(denda)}\n" else ""
     val message = "✅ *KONFIRMASI PEMBAYARAN KAS*\n\n" +
             "Nama: $studentName\n" +
             "Bulan: $bulan\n" +
             "Metode: $method\n" +
-            "Nominal: Rp 20.000\n\n" +
+            "Kas Bulanan: Rp ${KastepViewModel.formatRupiah(20000)}\n" +
+            dendaLine +
+            "Total Bayar: Rp ${KastepViewModel.formatRupiah(totalBayar)}\n\n" +
             "Pembayaran telah berhasil dicatat di aplikasi KASTEP."
     val encodedMsg = URLEncoder.encode(message, "UTF-8")
     try {
