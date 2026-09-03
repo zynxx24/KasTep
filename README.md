@@ -267,6 +267,24 @@ if (showPemasukanDetailDialog) {
 }
 ```
 
+### Q9: Bagaimana perhitungan denda keterlambatan pembayaran kas?
+> **Penjelasan**: Jika siswa menunggak pembayaran kas (contoh: bulan Juli belum dibayar saat memasuki bulan Agustus/September), sistem secara otomatis menghitung denda **Rp 5.000 per bulan keterlambatan**. Total pembayaran yang harus dilunasi adalah **Kas Bulanan (Rp 20.000) + Total Denda**.
+>
+> 💻 **Kode Perhitungan Denda (`KastepRepository.kt`)**:
+```kotlin
+fun calculateDenda(studentName: String, bulan: String): Long {
+    val siswa = _students.value.find { it.nama == studentName } ?: return 0L
+    val isPaid = if (bulan.contains("Juli")) siswa.statusJuli == StatusBayar.LUNAS else siswa.statusAgustus == StatusBayar.LUNAS
+    if (isPaid) return 0L
+
+    val dueMonth = if (bulan.contains("Juli")) 7 else 8
+    val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
+    val monthsLate = (currentMonth - dueMonth).coerceAtLeast(0)
+
+    return monthsLate * 5000L
+}
+```
+
 ---
 
 ## ✨ Fitur-Fitur Utama
