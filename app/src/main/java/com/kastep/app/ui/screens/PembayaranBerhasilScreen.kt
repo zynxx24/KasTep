@@ -28,13 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.ContentScale
@@ -56,13 +57,25 @@ private val SuccessGreen = Color(0xFF12BE64)
 private val DotGreen = Color(0xFF1ED775)
 private val DividerDark = Color(0xFF0A2A17)
 
+private val FwRed = Color(0xFFE53935)
+private val FwYellow = Color(0xFFFFC107)
+private val FwGreen = Color(0xFF43A047)
+private val FwBlue = Color(0xFF1E40AF)
+
+/** Height of the black hero area (dots, fireworks, mascot). */
+private val HeroHeight = 320.dp
+/** Where the green dome starts; the dome overlaps the bottom of the mascot. */
+private val DomeTop = 292.dp
+/** How much the dome edges sit below its peak. */
+private val DomeRise = 45.dp
+
 /** Green section with a convex dome on top, like the design. */
 private object DomeShape : Shape {
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-        val dome = with(density) { 70.dp.toPx() }
+        val rise = with(density) { DomeRise.toPx() }
         val path = Path().apply {
-            moveTo(0f, dome)
-            quadraticBezierTo(size.width / 2f, -dome, size.width, dome)
+            moveTo(0f, rise)
+            quadraticBezierTo(size.width / 2f, -rise, size.width, rise)
             lineTo(size.width, size.height)
             lineTo(0f, size.height)
             close()
@@ -87,12 +100,34 @@ fun PembayaranBerhasilScreen(
     val jumlah = "Rp " + KastepViewModel.formatRupiah(last?.jumlah ?: 0L)
     val atasNama = last?.namaSiswa ?: "-"
 
+    PembayaranBerhasilContent(
+        currentDate = currentDate,
+        userName = userProfile.nama,
+        jumlah = jumlah,
+        atasNama = atasNama,
+        onOpenDrawer = onOpenDrawer,
+        onNavigateToProfile = onNavigateToProfile,
+        onKembali = onKembali
+    )
+}
+
+/** Stateless UI so the layout can be previewed / screenshot-tested without a ViewModel. */
+@Composable
+internal fun PembayaranBerhasilContent(
+    currentDate: String,
+    userName: String,
+    jumlah: String,
+    atasNama: String,
+    onOpenDrawer: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
+    onKembali: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(KastepBlack)
     ) {
-        TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer, onNavigateToProfile = onNavigateToProfile)
+        TopBar(currentDate = currentDate, userName = userName, onMenuClick = onOpenDrawer, onNavigateToProfile = onNavigateToProfile)
 
         Box(
             modifier = Modifier
@@ -103,7 +138,7 @@ fun PembayaranBerhasilScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp),
+                    .height(HeroHeight),
                 contentAlignment = Alignment.BottomCenter
             ) {
                 DotGrid()
@@ -111,8 +146,8 @@ fun PembayaranBerhasilScreen(
                 Image(
                     painter = painterResource(id = R.drawable.ic_spongebob),
                     contentDescription = "Maskot pembayaran berhasil",
-                    modifier = Modifier.size(300.dp),
-                    contentScale = ContentScale.Fit
+                    modifier = Modifier.height(HeroHeight - 10.dp),
+                    contentScale = ContentScale.FillHeight
                 )
             }
 
@@ -120,19 +155,19 @@ fun PembayaranBerhasilScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 230.dp)
+                    .padding(top = DomeTop)
                     .clip(DomeShape)
                     .background(SuccessGreen)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(Modifier.height(36.dp))
-                FlyingMoney(modifier = Modifier.size(width = 150.dp, height = 140.dp))
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(34.dp))
+                FlyingMoney(modifier = Modifier.size(width = 122.dp, height = 112.dp))
+                Spacer(Modifier.height(10.dp))
                 Text(
                     text = jumlah,
                     color = KastepWhite,
-                    fontSize = 28.sp,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(4.dp))
@@ -143,34 +178,55 @@ fun PembayaranBerhasilScreen(
                     fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center
                 )
-                Spacer(Modifier.height(40.dp))
+                Spacer(Modifier.height(36.dp))
 
                 HorizontalDivider(color = DividerDark, thickness = 1.5.dp)
                 DetailRow(label = "Jumlah\nPembayaran", value = jumlah)
                 HorizontalDivider(color = DividerDark, thickness = 1.5.dp)
                 DetailRow(label = "Atas\nNama", value = atasNama)
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(18.dp))
 
                 // Navy gradient "Kembali" button
                 Box(
                     modifier = Modifier
-                        .width(200.dp)
-                        .height(46.dp)
-                        .clip(RoundedCornerShape(23.dp))
+                        .width(182.dp)
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(20.dp))
                         .background(Brush.verticalGradient(listOf(Color(0xFF1A237E), Color(0xFF5B7CFA))))
                         .clickable(onClick = onKembali),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Kembali", color = KastepWhite, fontSize = 20.sp, fontWeight = FontWeight.Medium)
+                    Text("Kembali", color = KastepWhite, fontSize = 19.sp, fontWeight = FontWeight.Normal)
                 }
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(24.dp))
             }
         }
     }
 }
 
-/** Falling banknotes with sparkles (replaces the emoji, matches the design illustration). */
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = label, color = KastepWhite, fontSize = 18.sp, lineHeight = 26.sp)
+        Spacer(Modifier.width(16.dp))
+        Text(
+            text = value,
+            color = KastepWhite,
+            fontSize = 24.sp,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f, fill = false)
+        )
+    }
+}
+
+/** Falling banknotes with sparkles (matches the design illustration). */
 @Composable
 private fun FlyingMoney(modifier: Modifier = Modifier) {
     val billFill = Color(0xFFC8E6C0)
@@ -180,9 +236,9 @@ private fun FlyingMoney(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
         val w = size.width
         val h = size.height
-        val bw = w * 0.42f
-        val bh = h * 0.2f
-        val stroke = 2.dp.toPx()
+        val bw = w * 0.40f
+        val bh = h * 0.17f
+        val stroke = 1.6.dp.toPx()
 
         fun bill(cx: Float, cy: Float, deg: Float) {
             rotate(deg, pivot = Offset(cx, cy)) {
@@ -211,57 +267,38 @@ private fun FlyingMoney(modifier: Modifier = Modifier) {
             drawPath(path, outline, style = Stroke(stroke * 0.6f))
         }
 
-        bill(w * 0.38f, h * 0.18f, -20f)
-        bill(w * 0.52f, h * 0.30f, -8f)
-        bill(w * 0.28f, h * 0.62f, -28f)
-        bill(w * 0.72f, h * 0.58f, 22f)
-        bill(w * 0.50f, h * 0.84f, 70f)
+        // Layout follows the design: two notes on top, two in the middle, one falling at the bottom.
+        bill(w * 0.44f, h * 0.10f, -12f)
+        bill(w * 0.56f, h * 0.30f, -14f)
+        bill(w * 0.30f, h * 0.58f, -24f)
+        bill(w * 0.70f, h * 0.55f, 22f)
+        bill(w * 0.52f, h * 0.84f, 68f)
 
-        sparkle(w * 0.78f, h * 0.05f, 4.dp.toPx())
-        sparkle(w * 0.12f, h * 0.32f, 3.5.dp.toPx())
-        sparkle(w * 0.90f, h * 0.38f, 4.dp.toPx())
-        sparkle(w * 0.22f, h * 0.45f, 3.5.dp.toPx())
-        sparkle(w * 0.30f, h * 0.92f, 3.dp.toPx())
+        sparkle(w * 0.82f, h * 0.02f, 3.dp.toPx())
+        sparkle(w * 0.18f, h * 0.24f, 2.6.dp.toPx())
+        sparkle(w * 0.90f, h * 0.36f, 3.dp.toPx())
+        sparkle(w * 0.12f, h * 0.46f, 2.6.dp.toPx())
+        sparkle(w * 0.40f, h * 0.96f, 2.4.dp.toPx())
     }
 }
 
-@Composable
-private fun DetailRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = label, color = KastepWhite, fontSize = 18.sp, lineHeight = 24.sp)
-        Spacer(Modifier.width(16.dp))
-        Text(
-            text = value,
-            color = KastepWhite,
-            fontSize = 24.sp,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f, fill = false)
-        )
-    }
-}
-
-/** Green halftone dot pattern behind the mascot. */
+/** Green halftone dot pattern behind the mascot (round cluster, uniform dots). */
 @Composable
 private fun DotGrid() {
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val step = 22.dp.toPx()
+        val step = 26.dp.toPx()
+        val radius = 2.4.dp.toPx()
         val cx = size.width / 2f
-        val cy = size.height * 0.55f
-        val maxDist = size.width * 0.55f
-        var y = step / 2
+        val cy = size.height * 0.47f
+        val maxDist = size.width * 0.52f
+        // Center the grid horizontally so the pattern is symmetric.
+        val startX = cx - (cx / step).toInt() * step
+        var y = step * 0.6f
         while (y < size.height) {
-            var x = step / 2
+            var x = startX
             while (x < size.width) {
-                val d = Offset(x - cx, y - cy).getDistance()
-                if (d < maxDist) {
-                    val r = 2.6.dp.toPx() * (1f - d / maxDist * 0.6f)
-                    drawCircle(DotGreen, radius = r, center = Offset(x, y))
+                if (Offset(x - cx, y - cy).getDistance() < maxDist) {
+                    drawCircle(DotGreen, radius = radius, center = Offset(x, y))
                 }
                 x += step
             }
@@ -270,29 +307,58 @@ private fun DotGrid() {
     }
 }
 
-/** Colourful firework bursts on both sides, like the design. */
+/** Colourful teardrop "petal" firework bursts on both sides, like the design. */
 @Composable
 private fun Fireworks() {
-    val palette = listOf(Color(0xFFE53935), Color(0xFFFFC107), Color(0xFF43A047), Color(0xFF1E40AF))
     Canvas(modifier = Modifier.fillMaxSize()) {
-        fun burst(center: Offset, startDeg: Float, sweepDeg: Float, count: Int) {
-            val inner = 22.dp.toPx()
-            val outer = 62.dp.toPx()
-            for (i in 0 until count) {
-                val a = Math.toRadians((startDeg + sweepDeg * i / (count - 1)).toDouble())
-                val dir = Offset(cos(a).toFloat(), sin(a).toFloat())
-                drawLine(
-                    color = palette[i % palette.size],
-                    start = center + dir * inner,
-                    end = center + dir * outer,
-                    strokeWidth = 7.dp.toPx(),
-                    cap = StrokeCap.Round
-                )
-            }
-        }
-        // top-right: rays fan out to the right
-        burst(Offset(size.width * 0.80f, size.height * 0.30f), -100f, 140f, 6)
-        // bottom-left: rays fan out to the left
-        burst(Offset(size.width * 0.18f, size.height * 0.62f), 100f, 140f, 6)
+        // top-right burst: petals fan from straight up round to lower-right
+        burst(
+            center = Offset(size.width * 0.75f, 92.dp.toPx()),
+            startDeg = -107f, sweepDeg = 138f,
+            colors = listOf(FwRed, FwGreen, FwYellow, FwGreen, FwYellow, FwBlue, FwRed)
+        )
+        // left burst: petals fan out to the left
+        burst(
+            center = Offset(size.width * 0.21f, 232.dp.toPx()),
+            startDeg = 107f, sweepDeg = 124f,
+            colors = listOf(FwRed, FwBlue, FwYellow, FwGreen, FwYellow, FwRed)
+        )
     }
+}
+
+private fun DrawScope.burst(center: Offset, startDeg: Float, sweepDeg: Float, colors: List<Color>) {
+    val inner = 30.dp.toPx()
+    val outer = 78.dp.toPx()
+    val tipRadius = 6.dp.toPx()
+    colors.forEachIndexed { i, color ->
+        val deg = startDeg + sweepDeg * i / (colors.size - 1)
+        // Alternate petal length slightly so the burst doesn't look mechanical.
+        val len = if (i % 2 == 0) outer else outer * 0.86f
+        drawPetal(center, deg, inner, len, tipRadius, color)
+    }
+}
+
+/** A teardrop: pointed at the inner end, rounded at the outer end. */
+private fun DrawScope.drawPetal(
+    center: Offset, deg: Float, inner: Float, outer: Float, r: Float, color: Color
+) {
+    fun dir(d: Float): Offset {
+        val a = Math.toRadians(d.toDouble())
+        return Offset(cos(a).toFloat(), sin(a).toFloat())
+    }
+    val tip = center + dir(deg) * inner
+    val roundCenter = center + dir(deg) * (outer - r)
+    val path = Path().apply {
+        moveTo(tip.x, tip.y)
+        val side = roundCenter + dir(deg - 90f) * r
+        lineTo(side.x, side.y)
+        arcTo(
+            rect = Rect(roundCenter, r),
+            startAngleDegrees = deg - 90f,
+            sweepAngleDegrees = 180f,
+            forceMoveTo = false
+        )
+        close()
+    }
+    drawPath(path, color)
 }
