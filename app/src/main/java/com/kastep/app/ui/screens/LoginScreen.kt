@@ -99,14 +99,7 @@ fun LoginScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Admin: admin@gmail.com / admin123",
-                color = KastepGray,
-                fontSize = 12.sp
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Error message
             if (errorMessage != null) {
