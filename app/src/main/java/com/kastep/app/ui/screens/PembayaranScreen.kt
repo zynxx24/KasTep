@@ -170,7 +170,7 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
                     lastPaidTotal = totalBayar
                     lastPaidDenda = denda
                     showPaymentDialog = false
-                    sendWhatsAppConfirmation(context, studentName, bulan, selectedMethod ?: "Cash", totalBayar, denda)
+                    // WhatsApp confirmation is sent from the success screen, so it is always seen first.
                     onPaymentSuccess()
                 } else {
                     android.widget.Toast.makeText(context, result, android.widget.Toast.LENGTH_SHORT).show()
@@ -381,7 +381,7 @@ private fun QrisSimulationDialog(onDismiss: () -> Unit, onProceed: () -> Unit) {
     )
 }
 
-private fun sendWhatsAppConfirmation(context: Context, studentName: String, bulan: String, method: String, totalBayar: Long, denda: Long) {
+internal fun sendWhatsAppConfirmation(context: Context, studentName: String, bulan: String, method: String, totalBayar: Long, denda: Long) {
     val phone = "6289520371942"
     val dendaLine = if (denda > 0) "Denda Telat: Rp ${KastepViewModel.formatRupiah(denda)}\n" else ""
     val message = "✅ *KONFIRMASI PEMBAYARAN KAS*\n\n" +
