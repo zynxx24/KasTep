@@ -33,7 +33,7 @@ import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
+fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavigateToProfile: () -> Unit = {}, onPaymentSuccess: () -> Unit = {}) {
     val userProfile by viewModel.userProfile.collectAsState()
     val students by viewModel.students.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
@@ -170,8 +170,10 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
                     lastPaidTotal = totalBayar
                     lastPaidDenda = denda
                     showPaymentDialog = false
-                    showSuccessDialog = true
                     sendWhatsAppConfirmation(context, studentName, bulan, selectedMethod ?: "Cash", totalBayar, denda)
+                    onPaymentSuccess()
+                } else {
+                    android.widget.Toast.makeText(context, result, android.widget.Toast.LENGTH_SHORT).show()
                 }
             }
         )

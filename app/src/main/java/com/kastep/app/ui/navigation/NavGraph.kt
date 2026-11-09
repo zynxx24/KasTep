@@ -133,7 +133,8 @@ fun NavGraph(
             PembayaranScreen(
                 viewModel = viewModel,
                 onOpenDrawer = onOpenDrawer,
-                onNavigateToProfile = navigateToProfile
+                onNavigateToProfile = navigateToProfile,
+                onPaymentSuccess = { navController.navigate(Screen.PembayaranBerhasil.route) }
             )
         }
 

@@ -91,3 +91,7 @@ Thumbs.db
 # Misc
 *.swp
 *~
+
+# Release signing (never commit)
+keystore.properties
+*.jks

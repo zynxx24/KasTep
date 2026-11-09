@@ -184,9 +184,15 @@ class KastepRepository(context: Context? = null) {
             else -> return 0L
         }
 
+        // Year comes from the label (e.g. "Juli 2026"); compare year+month so
+        // the penalty keeps counting after the year rolls over.
+        val dueYear = bulan.trim().substringAfterLast(" ").toIntOrNull()
+            ?: java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+
         val calendar = java.util.Calendar.getInstance()
+        val currentYear = calendar.get(java.util.Calendar.YEAR)
         val currentMonth = calendar.get(java.util.Calendar.MONTH) + 1 // 1-indexed
-        val monthsLate = (currentMonth - dueMonth).coerceAtLeast(0)
+        val monthsLate = ((currentYear - dueYear) * 12 + (currentMonth - dueMonth)).coerceAtLeast(0)
 
         return monthsLate * DENDA_PER_BULAN
     }
@@ -194,6 +200,15 @@ class KastepRepository(context: Context? = null) {
     fun processPayment(studentName: String, bulan: String, metode: String, jumlah: Long): String? {
         if (studentName.isBlank()) return "Pilih siswa terlebih dahulu"
         if (bulan.isBlank()) return "Pilih bulan pembayaran"
+
+        val siswa = _students.value.find { it.nama == studentName }
+            ?: return "Siswa tidak ditemukan"
+        val sudahLunas = when {
+            bulan.contains("Juli") -> siswa.statusJuli == StatusBayar.LUNAS
+            bulan.contains("Agustus") -> siswa.statusAgustus == StatusBayar.LUNAS
+            else -> false
+        }
+        if (sudahLunas) return "$studentName sudah lunas untuk $bulan"
 
         val nextNo = (_paymentRecords.value.maxOfOrNull { it.no } ?: 0) + 1
         val record = PaymentRecord(
@@ -246,8 +261,16 @@ class KastepRepository(context: Context? = null) {
     // ==================== RESET / REPORT ====================
 
     fun resetData() {
+        // Keep the current session (only the admin can reset) but wipe everything else,
+        // including registered accounts that would otherwise be re-saved from memory.
+        val currentProfile = _userProfile.value
+        val loggedIn = _isLoggedIn.value
         prefs?.edit()?.clear()?.apply()
+        _registeredUsers.clear()
+        _registeredUsers["admin@gmail.com"] = Pair("Administrator", "admin123")
         loadInitialData()
+        _userProfile.value = currentProfile
+        _isLoggedIn.value = loggedIn
         saveToPrefs()
     }
 
