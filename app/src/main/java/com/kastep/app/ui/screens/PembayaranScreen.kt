@@ -233,6 +233,16 @@ private fun PaymentConfirmDialog(
     var expandedBulan by remember { mutableStateOf(false) }
     val bulanOptions = listOf("Juli 2026", "Agustus 2026")
 
+    fun isLunas(siswa: com.kastep.app.data.Siswa?, bulan: String): Boolean = when {
+        siswa == null -> false
+        bulan.contains("Juli") -> siswa.statusJuli == com.kastep.app.data.StatusBayar.LUNAS
+        bulan.contains("Agustus") -> siswa.statusAgustus == com.kastep.app.data.StatusBayar.LUNAS
+        else -> false
+    }
+    val selectedSiswa = students.find { it.nama == selectedStudent }
+    val sudahLunas = selectedBulan.isNotBlank() && isLunas(selectedSiswa, selectedBulan)
+    val canPay = selectedStudent.isNotBlank() && selectedBulan.isNotBlank() && !sudahLunas
+
     val denda = if (selectedStudent.isNotBlank() && selectedBulan.isNotBlank()) {
         viewModel.calculateDenda(selectedStudent, selectedBulan)
     } else 0L
@@ -255,9 +265,29 @@ private fun PaymentConfirmDialog(
                     )
                     ExposedDropdownMenu(expanded = expandedStudent, onDismissRequest = { expandedStudent = false }) {
                         students.forEach { s ->
-                            DropdownMenuItem(text = { Text(s.nama, fontSize = 13.sp) }, onClick = {
-                                selectedStudent = s.nama; expandedStudent = false
-                            })
+                            val belum = bulanOptions.filterNot { isLunas(s, it) }
+                            val lunasSemua = belum.isEmpty()
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(s.nama, fontSize = 13.sp, color = if (lunasSemua) Color.Gray else Color.Unspecified)
+                                        Text(
+                                            if (lunasSemua) "Lunas semua"
+                                            else "Belum: " + belum.joinToString { it.substringBefore(" ") },
+                                            fontSize = 11.sp,
+                                            color = if (lunasSemua) KastepGreen else Color(0xFFFF6B6B)
+                                        )
+                                    }
+                                },
+                                enabled = !lunasSemua,
+                                onClick = {
+                                    selectedStudent = s.nama; expandedStudent = false
+                                    // Pre-select the first unpaid month so the user can pay right away.
+                                    if (selectedBulan.isBlank() || isLunas(s, selectedBulan)) {
+                                        selectedBulan = belum.firstOrNull() ?: ""
+                                    }
+                                }
+                            )
                         }
                     }
                 }
@@ -273,14 +303,25 @@ private fun PaymentConfirmDialog(
                     )
                     ExposedDropdownMenu(expanded = expandedBulan, onDismissRequest = { expandedBulan = false }) {
                         bulanOptions.forEach { b ->
-                            DropdownMenuItem(text = { Text(b) }, onClick = {
-                                selectedBulan = b; expandedBulan = false
-                            })
+                            val lunas = isLunas(selectedSiswa, b)
+                            DropdownMenuItem(
+                                text = { Text(if (lunas) "$b (Lunas)" else b) },
+                                enabled = !lunas,
+                                onClick = { selectedBulan = b; expandedBulan = false }
+                            )
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
+
+                if (sudahLunas) {
+                    Text(
+                        "$selectedStudent sudah lunas untuk $selectedBulan.",
+                        color = Color(0xFFFF6B6B), fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
                 // Payment breakdown
                 Text("Kas Bulanan: Rp ${KastepViewModel.formatRupiah(kasBulanan)}", fontWeight = FontWeight.Medium)
@@ -297,8 +338,8 @@ private fun PaymentConfirmDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { if (selectedStudent.isNotBlank() && selectedBulan.isNotBlank()) onConfirm(selectedStudent, selectedBulan, totalBayar, denda) },
-                enabled = selectedStudent.isNotBlank() && selectedBulan.isNotBlank()
+                onClick = { if (canPay) onConfirm(selectedStudent, selectedBulan, totalBayar, denda) },
+                enabled = canPay
             ) { Text("Bayar Sekarang") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Batal") } }
