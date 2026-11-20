@@ -1,8 +1,16 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · Color.kt
+// Isi file : Warna tema hitam-cyan KASTEP.
+// Penanda  : CARI-TEMA
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
 // KASTEP Design Colors — Pure dark theme with blue/cyan accents
+// CARI-TEMA | Ubah nilai warna di file ini untuk mengganti tema.
 val KastepBlack = Color(0xFF000000)
 val KastepDarkSurface = Color(0xFF1A1A2E)
 val KastepCardDark = Color(0xFF16213E)

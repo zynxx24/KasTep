@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · RegisterScreen.kt
+// Isi file : Halaman Register akun baru.
+// Penanda  : CARI-REGISTER
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.Canvas
@@ -44,11 +51,18 @@ import com.kastep.app.ui.theme.KastepCyan
 import com.kastep.app.ui.theme.KastepGray
 import com.kastep.app.ui.theme.KastepRed
 import com.kastep.app.ui.theme.KastepWhite
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 
+// CARI-REGISTER | Form nama, email, NIS, kelas, No. HP, password; link kembali ke Login di bawah.
 @Composable
 fun RegisterScreen(
     viewModel: KastepViewModel,
-    onRegisterSuccess: () -> Unit
+    onRegisterSuccess: () -> Unit,
+    onBackToLogin: () -> Unit = {}
 ) {
     var nama by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -97,13 +111,13 @@ fun RegisterScreen(
 
             FormField(label = "Nama *", value = nama, onValueChange = { nama = it; errorMessage = null }, placeholder = "Nama lengkap (min. 3 karakter)")
             Spacer(modifier = Modifier.height(12.dp))
-            FormField(label = "Email *", value = email, onValueChange = { email = it; errorMessage = null }, placeholder = "contoh@email.com")
+            FormField(label = "Email *", value = email, onValueChange = { email = it; errorMessage = null }, placeholder = "contoh@email.com", keyboardType = KeyboardType.Email)
             Spacer(modifier = Modifier.height(12.dp))
             FormField(label = "NIS", value = nis, onValueChange = { nis = it }, placeholder = "Nomor Induk Siswa")
             Spacer(modifier = Modifier.height(12.dp))
             FormField(label = "Kelas", value = kelas, onValueChange = { kelas = it }, placeholder = "XII PPLG")
             Spacer(modifier = Modifier.height(12.dp))
-            FormField(label = "No HP", value = noHp, onValueChange = { noHp = it }, placeholder = "+62...")
+            FormField(label = "No HP", value = noHp, onValueChange = { v -> noHp = v.filter { it.isDigit() || it == '+' } }, placeholder = "+62...", keyboardType = KeyboardType.Phone)
             Spacer(modifier = Modifier.height(12.dp))
             FormField(label = "Password *", value = password, onValueChange = { password = it; errorMessage = null }, isPassword = true, placeholder = "Minimal 5 karakter")
 
@@ -131,6 +145,15 @@ fun RegisterScreen(
                     Text("Register", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Text("Sudah punya akun? ", color = KastepWhite, fontSize = 14.sp)
+                Text(
+                    "Login", color = KastepCyan, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onBackToLogin() }
+                )
+            }
         }
     }
 }
@@ -141,7 +164,8 @@ private fun FormField(
     value: String,
     onValueChange: (String) -> Unit,
     isPassword: Boolean = false,
-    placeholder: String = ""
+    placeholder: String = "",
+    keyboardType: KeyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Text
 ) {
     Text(text = label, color = KastepWhite, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     Spacer(modifier = Modifier.height(6.dp))
@@ -152,6 +176,7 @@ private fun FormField(
         shape = RoundedCornerShape(12.dp),
         placeholder = { Text(placeholder, color = KastepGray.copy(alpha = 0.5f)) },
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = KastepCyan,
             unfocusedBorderColor = KastepGray.copy(alpha = 0.5f),

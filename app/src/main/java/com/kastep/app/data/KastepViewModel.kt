@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · KastepViewModel.kt
+// Isi file : Penghubung layar dengan repository.
+// Penanda  : CARI-PUSAT-DATA, CARI-SALDO, CARI-FORMAT-RUPIAH
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.data
 
 import android.app.Application
@@ -6,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import java.text.NumberFormat
 import java.util.Locale
 
+// CARI-PUSAT-DATA | Layar memanggil fungsi di sini; isi logikanya ada di KastepRepository.
 class KastepViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = KastepRepository(application.applicationContext)
@@ -23,6 +31,7 @@ class KastepViewModel(application: Application) : AndroidViewModel(application) 
     val totalExpense: Long
         get() = pengeluaranList.value.sumOf { it.jumlah }
 
+    // CARI-SALDO | Saldo = total pemasukan - total pengeluaran (dipakai Dashboard).
     val saldo: Long
         get() = totalIncome - totalExpense
 
@@ -31,6 +40,7 @@ class KastepViewModel(application: Application) : AndroidViewModel(application) 
     fun register(nama: String, email: String, nis: String, kelas: String, noHp: String, password: String): String? =
         repository.register(nama, email, nis, kelas, noHp, password)
     fun logout() = repository.logout()
+    fun updateProfile(nama: String, noHp: String): String? = repository.updateProfile(nama, noHp)
 
     // Student CRUD
     fun addStudent(nama: String, peran: String): String? = repository.addStudent(nama, peran)
@@ -38,15 +48,21 @@ class KastepViewModel(application: Application) : AndroidViewModel(application) 
     fun deleteStudent(no: Int) = repository.deleteStudent(no)
 
     // Payments
-    fun processPayment(studentName: String, bulan: String, metode: String, jumlah: Long = 20000): String? =
-        repository.processPayment(studentName, bulan, metode, jumlah)
+    fun processPayment(studentName: String, bulan: String, metode: String): String? =
+        repository.processPayment(studentName, bulan, metode)
     fun calculateDenda(studentName: String, bulan: String): Long =
         repository.calculateDenda(studentName, bulan)
+    fun getBulanKas(): List<String> = repository.getBulanKas()
+    fun statusBulan(siswa: Siswa, bulan: String): StatusBayar = repository.statusBulan(siswa, bulan)
+    fun mingguLunas(siswa: Siswa, bulan: String): Int = repository.mingguLunas(siswa, bulan)
+    fun sisaKas(siswa: Siswa, bulan: String): Long = repository.sisaKas(siswa, bulan)
+    fun totalDenda(siswa: Siswa): Long = repository.totalDenda(siswa)
+    fun jumlahMinggu(bulan: String): Int = KastepRepository.jumlahMinggu(bulan)
 
     // Pengeluaran
     fun addPengeluaran(tanggal: String, jumlah: Long, keterangan: String): String? =
         repository.addPengeluaran(tanggal, jumlah, keterangan)
-    fun updatePengeluaran(id: String, tanggal: String, jumlah: Long, keterangan: String) =
+    fun updatePengeluaran(id: String, tanggal: String, jumlah: Long, keterangan: String): String? =
         repository.updatePengeluaran(id, tanggal, jumlah, keterangan)
     fun deletePengeluaran(id: String) = repository.deletePengeluaran(id)
 
@@ -56,6 +72,7 @@ class KastepViewModel(application: Application) : AndroidViewModel(application) 
     fun getCurrentDateString(): String = repository.getCurrentDateString()
 
     companion object {
+        // CARI-FORMAT-RUPIAH | Mengubah 1389000 menjadi "1.389.000".
         fun formatRupiah(amount: Long): String {
             val formatter = NumberFormat.getInstance(Locale("id", "ID"))
             return formatter.format(amount)

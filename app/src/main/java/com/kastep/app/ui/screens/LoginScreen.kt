@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · LoginScreen.kt
+// Isi file : Halaman Login dan logo header.
+// Penanda  : CARI-LOGIN
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.Canvas
@@ -50,7 +57,17 @@ import com.kastep.app.ui.theme.KastepCyan
 import com.kastep.app.ui.theme.KastepGray
 import com.kastep.app.ui.theme.KastepRed
 import com.kastep.app.ui.theme.KastepWhite
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 
+// CARI-LOGIN | Form email & password; pesan error dari KastepRepository.login.
 @Composable
 fun LoginScreen(
     viewModel: KastepViewModel,
@@ -59,6 +76,7 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Box(
@@ -124,6 +142,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 placeholder = { Text("contoh@email.com", color = KastepGray.copy(alpha = 0.5f)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = KastepCyan,
                     unfocusedBorderColor = KastepGray.copy(alpha = 0.5f),
@@ -144,7 +163,17 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 placeholder = { Text("Minimal 5 karakter", color = KastepGray.copy(alpha = 0.5f)) },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { showPassword = !showPassword }) {
+                        Icon(
+                            if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (showPassword) "Sembunyikan password" else "Lihat password",
+                            tint = KastepGray
+                        )
+                    }
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = KastepCyan,
                     unfocusedBorderColor = KastepGray.copy(alpha = 0.5f),

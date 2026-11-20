@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · RiwayatPembayaranScreen.kt
+// Isi file : Riwayat semua pembayaran dengan pencarian dan halaman.
+// Penanda  : CARI-PEMBAYARAN
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.background
@@ -21,11 +28,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,19 +53,25 @@ import com.kastep.app.ui.theme.KastepCyan
 import com.kastep.app.ui.theme.KastepGray
 import com.kastep.app.ui.theme.KastepWhite
 
+// CARI-PEMBAYARAN | 8 data per halaman; cari berdasarkan nama atau bulan; tombol Bayar Kas ke halaman Pembayaran.
 @Composable
 fun RiwayatPembayaranScreen(
     viewModel: KastepViewModel,
     onOpenDrawer: () -> Unit,
-    onNavigateToProfile: () -> Unit = {}
+    onNavigateToProfile: () -> Unit = {},
+    onBayarKas: () -> Unit = {}
 ) {
-    val paymentRecords by viewModel.paymentRecords.collectAsState()
+    val allRecords by viewModel.paymentRecords.collectAsState()
+    var query by remember { mutableStateOf("") }
+    val paymentRecords = allRecords.filter { query.isBlank() || it.namaSiswa.contains(query.trim(), ignoreCase = true) || it.bulan.contains(query.trim(), ignoreCase = true) }
     val userProfile by viewModel.userProfile.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
 
-    val itemsPerPage = 5
-    val totalPages = (paymentRecords.size + itemsPerPage - 1) / itemsPerPage
+    val itemsPerPage = 8
+    val totalPages = ((paymentRecords.size + itemsPerPage - 1) / itemsPerPage).coerceAtLeast(1)
     var currentPage by remember { mutableIntStateOf(1) }
+    // Halaman tidak boleh melebihi jumlah data (mis. setelah pencarian / reset data)
+    if (currentPage > totalPages) currentPage = totalPages
 
     val startIndex = (currentPage - 1) * itemsPerPage
     val endIndex = minOf(startIndex + itemsPerPage, paymentRecords.size)
@@ -96,15 +112,28 @@ fun RiwayatPembayaranScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Bayar Kas button (top right)
+        // Pencarian + tombol Bayar Kas
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it; currentPage = 1 },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Cari nama / bulan", color = KastepGray, fontSize = 13.sp) },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = KastepWhite, unfocusedTextColor = KastepWhite,
+                    focusedBorderColor = KastepCyan, unfocusedBorderColor = KastepGray.copy(alpha = 0.5f), cursorColor = KastepCyan
+                )
+            )
             Button(
-                onClick = { },
+                onClick = onBayarKas,
                 colors = ButtonDefaults.buttonColors(containerColor = KastepBlue),
                 shape = RoundedCornerShape(20.dp)
             ) {
@@ -148,6 +177,10 @@ fun RiwayatPembayaranScreen(
                 HorizontalDivider(color = KastepGray.copy(alpha = 0.2f), thickness = 0.5.dp)
 
                 // Table rows
+                if (currentPageItems.isEmpty()) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text("Belum ada pembayaran yang cocok", color = KastepGray, fontSize = 14.sp)
+                }
                 currentPageItems.forEach { record ->
                     Spacer(modifier = Modifier.height(20.dp))
 

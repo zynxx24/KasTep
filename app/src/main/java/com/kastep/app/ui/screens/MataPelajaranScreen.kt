@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · MataPelajaranScreen.kt
+// Isi file : Jadwal pelajaran dan alokasi waktu XII PPLG.
+// Penanda  : CARI-JADWAL
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.background
@@ -74,6 +81,7 @@ private data class TimeSlot(
 )
 
 // ─── Schedule data per day (matching the image exactly) ───
+// CARI-JADWAL | Isi jadwal per hari: ScheduleEntry(mapel, guru, warna, jam mulai, lama jam).
 private val scheduleData = mapOf(
     "Sen" to listOf(
         ScheduleEntry("PDL RPL", "Pak Surya", ColorPDLRPL, 1, 4),
@@ -120,6 +128,7 @@ private val timeSlots = listOf(
     TimeSlot("10", "14.50 - 15.20", "14.40 - 15.20", "", "")
 )
 
+// CARI-JADWAL | Menampilkan tabel jadwal dan tabel alokasi waktu.
 @Composable
 fun MataPelajaranScreen(
     viewModel: KastepViewModel,

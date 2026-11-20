@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · DataSiswaScreen.kt
+// Isi file : Data Siswa: tabel status kas per bulan, denda, tambah/edit/hapus siswa; juga TopBar bersama.
+// Penanda  : CARI-ANGGOTA, CARI-DENDA, CARI-VALIDASI, CARI-NAVIGASI
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.Canvas
@@ -31,17 +38,23 @@ import com.kastep.app.data.StatusBayar
 import com.kastep.app.data.UserRole
 import com.kastep.app.ui.theme.*
 
+// CARI-ANGGOTA CARI-DENDA | Kolom bulan: ✓ lunas, angka = minggu terbayar, D = dispensasi, ✗ belum. Kolom terakhir = total denda.
 @Composable
 fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
     val students by viewModel.students.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
     val isAdmin = userProfile.role == UserRole.ADMIN
+    val bulanKas = viewModel.getBulanKas()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var selectedStudent by remember { mutableStateOf<Siswa?>(null) }
+    var dialogError by remember { mutableStateOf<String?>(null) }
+    var query by remember { mutableStateOf("") }
+
+    val shown = students.filter { query.isBlank() || it.nama.contains(query.trim(), ignoreCase = true) || it.peran.contains(query.trim(), ignoreCase = true) }
 
     Column(modifier = Modifier.fillMaxSize().background(KastepBlack)) {
         TopBar(currentDate = currentDate, userName = userProfile.nama, onMenuClick = onOpenDrawer, onNavigateToProfile = onNavigateToProfile)
@@ -55,29 +68,36 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
                 Text("Data Siswa", color = KastepWhite, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Ringkasan informasi kas kelas", color = KastepGray, fontSize = 13.sp)
+            Text("Status kas per bulan (Rp 5.000 / minggu)", color = KastepGray, fontSize = 13.sp)
         }
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            placeholder = { Text("Cari nama atau peran", color = KastepGray) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = KastepGray) },
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = KastepWhite, unfocusedTextColor = KastepWhite,
+                focusedBorderColor = KastepCyan, unfocusedBorderColor = KastepGray.copy(alpha = 0.5f), cursorColor = KastepCyan
+            )
+        )
+
         Spacer(modifier = Modifier.height(8.dp))
-
-        Box(
-            modifier = Modifier.fillMaxWidth().height(20.dp).padding(horizontal = 20.dp)
-                .background(
-                    brush = androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(GradientBlueStart, GradientBlueEnd)),
-                    shape = RoundedCornerShape(4.dp)
-                )
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text("Jumlah Siswa : ${students.size}", color = KastepWhite, fontSize = 16.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 20.dp))
-        Spacer(modifier = Modifier.height(4.dp))
         Text(
-            if (isAdmin) "Tap baris siswa untuk edit/hapus" else "Mode lihat saja (hanya Admin yang dapat mengelola)",
-            color = KastepGray, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 20.dp)
+            "Jumlah Siswa : ${students.size}" + if (shown.size != students.size) "  ·  ditampilkan ${shown.size}" else "",
+            color = KastepWhite, fontSize = 15.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 20.dp)
+        )
+        Text(
+            (if (isAdmin) "Tap baris siswa untuk edit/hapus. " else "Mode lihat saja. ") + "✓ lunas · angka = minggu terbayar · D = dispensasi",
+            color = KastepGray, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 20.dp)
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Column(modifier = Modifier.weight(1f).padding(horizontal = 4.dp)) {
             val hScroll = rememberScrollState()
@@ -89,16 +109,23 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
                 Text("No", color = KastepWhite, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.width(35.dp))
                 Text("Nama Siswa", color = KastepWhite, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.width(220.dp))
                 Text("Peran", color = KastepWhite, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.width(100.dp))
-                Text("Juli", color = KastepWhite, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.width(60.dp), textAlign = TextAlign.Center)
-                Text("Agustus", color = KastepWhite, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.width(70.dp), textAlign = TextAlign.Center)
+                bulanKas.forEach { b ->
+                    Text(b.take(3), color = KastepWhite, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.width(48.dp), textAlign = TextAlign.Center)
+                }
+                Text("Denda", color = KastepWhite, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.width(80.dp), textAlign = TextAlign.End)
             }
 
             Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                students.forEach { siswa ->
+                if (shown.isEmpty()) {
+                    Text("Tidak ada siswa yang cocok dengan \"$query\"", color = KastepGray, fontSize = 13.sp, modifier = Modifier.padding(16.dp))
+                }
+                shown.forEach { siswa ->
+                    val denda = viewModel.totalDenda(siswa)
                     Row(
                         modifier = Modifier.fillMaxWidth().horizontalScroll(hScroll)
                             .then(if (isAdmin) Modifier.clickable {
                                 selectedStudent = siswa
+                                dialogError = null
                                 showEditDialog = true
                             } else Modifier)
                             .padding(vertical = 10.dp, horizontal = 12.dp)
@@ -106,15 +133,31 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
                         Text("${siswa.no}", color = KastepWhite, fontSize = 13.sp, modifier = Modifier.width(35.dp))
                         Text(siswa.nama, color = KastepWhite, fontSize = 13.sp, modifier = Modifier.width(220.dp))
                         Text(siswa.peran, color = KastepCyan, fontSize = 13.sp, modifier = Modifier.width(100.dp))
+                        bulanKas.forEach { b ->
+                            val lunas = viewModel.statusBulan(siswa, b) == StatusBayar.LUNAS
+                            val dispensasi = (siswa.dispensasi[b] ?: 0) > 0
+                            val minggu = viewModel.mingguLunas(siswa, b)
+                            Text(
+                                text = when {
+                                    lunas && dispensasi -> "D"
+                                    lunas -> "✓"
+                                    minggu > 0 -> "$minggu/${viewModel.jumlahMinggu(b)}"
+                                    else -> "✗"
+                                },
+                                color = when {
+                                    lunas && dispensasi -> KastepCyan
+                                    lunas -> KastepGreen
+                                    minggu > 0 -> Color(0xFFFFC107)
+                                    else -> KastepRed
+                                },
+                                fontSize = if (minggu > 0 && !lunas) 12.sp else 16.sp,
+                                fontWeight = FontWeight.Bold, modifier = Modifier.width(48.dp), textAlign = TextAlign.Center
+                            )
+                        }
                         Text(
-                            text = if (siswa.statusJuli == StatusBayar.LUNAS) "✓" else "✗",
-                            color = if (siswa.statusJuli == StatusBayar.LUNAS) KastepGreen else KastepRed,
-                            fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(60.dp), textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = if (siswa.statusAgustus == StatusBayar.LUNAS) "✓" else "✗",
-                            color = if (siswa.statusAgustus == StatusBayar.LUNAS) KastepGreen else KastepRed,
-                            fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(70.dp), textAlign = TextAlign.Center
+                            if (denda > 0) "Rp ${KastepViewModel.formatRupiah(denda)}" else "-",
+                            color = if (denda > 0) KastepRed else KastepGray, fontSize = 12.sp,
+                            modifier = Modifier.width(80.dp), textAlign = TextAlign.End
                         )
                     }
                     HorizontalDivider(color = KastepGray.copy(alpha = 0.15f), thickness = 0.5.dp)
@@ -131,7 +174,7 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(
-                    onClick = { showAddDialog = true },
+                    onClick = { dialogError = null; showAddDialog = true },
                     colors = ButtonDefaults.buttonColors(containerColor = KastepBlue),
                     shape = RoundedCornerShape(20.dp)
                 ) {
@@ -145,45 +188,45 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
         Spacer(modifier = Modifier.height(8.dp))
     }
 
-    // Add Dialog
     if (showAddDialog) {
         StudentDialog(
             title = "Tambah Siswa Baru",
             initialNama = "",
             initialPeran = "Anggota",
+            error = dialogError,
             onDismiss = { showAddDialog = false },
             onConfirm = { nama, peran ->
-                viewModel.addStudent(nama, peran)
-                showAddDialog = false
+                val err = viewModel.addStudent(nama, peran)
+                if (err == null) showAddDialog = false else dialogError = err
             }
         )
     }
 
-    // Edit Dialog
     if (showEditDialog && selectedStudent != null) {
         StudentDialog(
             title = "Edit Siswa",
             initialNama = selectedStudent!!.nama,
             initialPeran = selectedStudent!!.peran,
             showDelete = true,
+            error = dialogError,
             onDismiss = { showEditDialog = false; selectedStudent = null },
             onConfirm = { nama, peran ->
-                viewModel.updateStudent(selectedStudent!!.no, nama, peran)
-                showEditDialog = false; selectedStudent = null
+                val err = viewModel.updateStudent(selectedStudent!!.no, nama, peran)
+                if (err == null) { showEditDialog = false; selectedStudent = null } else dialogError = err
             },
             onDelete = {
-                viewModel.deleteStudent(selectedStudent!!.no)
-                showEditDialog = false; selectedStudent = null
+                // Tanya dulu sebelum menghapus
+                showEditDialog = false
+                showDeleteConfirm = true
             }
         )
     }
 
-    // Delete Confirm
     if (showDeleteConfirm && selectedStudent != null) {
         AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
+            onDismissRequest = { showDeleteConfirm = false; selectedStudent = null },
             title = { Text("Hapus Siswa", fontWeight = FontWeight.Bold) },
-            text = { Text("Yakin ingin menghapus ${selectedStudent!!.nama}?") },
+            text = { Text("Yakin ingin menghapus ${selectedStudent!!.nama}? Riwayat pembayarannya tetap tersimpan.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteStudent(selectedStudent!!.no)
@@ -191,18 +234,20 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
                 }) { Text("Hapus", color = KastepRed) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Batal") }
+                TextButton(onClick = { showDeleteConfirm = false; selectedStudent = null }) { Text("Batal") }
             }
         )
     }
 }
 
+// CARI-ANGGOTA CARI-VALIDASI | Dialog tambah/edit siswa; menampilkan pesan bila nama sudah dipakai.
 @Composable
 private fun StudentDialog(
     title: String,
     initialNama: String,
     initialPeran: String,
     showDelete: Boolean = false,
+    error: String? = null,
     onDismiss: () -> Unit,
     onConfirm: (String, String) -> Unit,
     onDelete: (() -> Unit)? = null
@@ -215,7 +260,11 @@ private fun StudentDialog(
         title = { Text(title, fontWeight = FontWeight.Bold) },
         text = {
             Column {
-                OutlinedTextField(value = nama, onValueChange = { nama = it }, label = { Text("Nama Siswa") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(
+                    value = nama, onValueChange = { nama = it }, label = { Text("Nama Siswa") },
+                    modifier = Modifier.fillMaxWidth(), singleLine = true,
+                    isError = error != null, supportingText = { if (error != null) Text(error, color = KastepRed) }
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(value = peran, onValueChange = { peran = it }, label = { Text("Peran") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                 if (showDelete && onDelete != null) {
@@ -229,7 +278,7 @@ private fun StudentDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (nama.isNotBlank()) onConfirm(nama, peran) }) { Text("Simpan") }
+            TextButton(onClick = { onConfirm(nama, peran) }, enabled = nama.isNotBlank()) { Text("Simpan") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Batal") }
@@ -238,6 +287,7 @@ private fun StudentDialog(
 }
 
 // Shared top bar
+// CARI-NAVIGASI | Bar atas yang dipakai banyak halaman: tombol menu, tanggal, dan tombol profil.
 @Composable
 fun TopBar(currentDate: String, userName: String, onMenuClick: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
     Row(

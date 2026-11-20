@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · MainActivity.kt
+// Isi file : Activity utama dan menu samping (drawer).
+// Penanda  : CARI-MULAI, CARI-NAVIGASI
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app
 
 import android.os.Bundle
@@ -21,6 +28,7 @@ import androidx.compose.material.icons.filled.AssignmentReturn
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.DrawerValue
@@ -53,6 +61,7 @@ import com.kastep.app.ui.theme.KastepTheme
 import com.kastep.app.ui.theme.KastepWhite
 import kotlinx.coroutines.launch
 
+// CARI-MULAI | Aplikasi dibuka dari sini: membuat KastepViewModel lalu menampilkan KastepApp.
 class MainActivity : ComponentActivity() {
 
     private val viewModel: KastepViewModel by viewModels()
@@ -102,10 +111,12 @@ fun KastepApp(viewModel: KastepViewModel) {
 
     // Drawer items matching the design exactly:
     // Dashboard, Data Siswa, Pembayaran, Pengeluaran, Mata Pelajaran, Laporan Kas
+    // CARI-NAVIGASI | Isi menu samping. Tambah menu = DrawerMenuItem(label, ikon, Screen.X.route) + daftarkan di NavGraph.
     val drawerItems = listOf(
         DrawerMenuItem("Dashboard", Icons.Default.Dashboard, Screen.Dashboard.route),
         DrawerMenuItem("Data Siswa", Icons.Default.People, Screen.DataSiswa.route),
         DrawerMenuItem("Pembayaran", Icons.Default.Payment, Screen.Pembayaran.route),
+        DrawerMenuItem("Riwayat Bayar", Icons.Default.History, Screen.RiwayatPembayaran.route),
         DrawerMenuItem("Pengeluaran", Icons.Default.AssignmentReturn, Screen.PengeluaranKas.route),
         DrawerMenuItem("Mata Pelajaran", Icons.Default.Book, Screen.MataPelajaran.route),
         DrawerMenuItem("Laporan Kas", Icons.Default.Description, Screen.LaporanKas.route)

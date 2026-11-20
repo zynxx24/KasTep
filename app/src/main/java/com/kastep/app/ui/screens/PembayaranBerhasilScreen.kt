@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · PembayaranBerhasilScreen.kt
+// Isi file : Layar sukses setelah membayar (animasi maskot, tombol Konfirmasi WA).
+// Penanda  : CARI-PEMBAYARAN, CARI-WHATSAPP
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.screens
 
 import androidx.compose.animation.core.Animatable
@@ -63,7 +70,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kastep.app.data.KastepRepository
 import com.kastep.app.data.KastepViewModel
 import com.kastep.app.ui.theme.KastepBlack
 import com.kastep.app.ui.theme.KastepWhite
@@ -103,6 +109,7 @@ private object DomeShape : Shape {
     }
 }
 
+// CARI-PEMBAYARAN CARI-WHATSAPP | Mengambil pembayaran terbaru lalu menampilkan jumlah & nama; tombol WA memakai sendWhatsAppConfirmation.
 @Composable
 fun PembayaranBerhasilScreen(
     viewModel: KastepViewModel,
@@ -129,8 +136,7 @@ fun PembayaranBerhasilScreen(
         onNavigateToProfile = onNavigateToProfile,
         onKonfirmasiWa = last?.let { r ->
             {
-                val denda = (r.jumlah - KastepRepository.KAS_BULANAN).coerceAtLeast(0L)
-                sendWhatsAppConfirmation(context, r.namaSiswa, r.bulan, r.metode, r.jumlah, denda)
+                sendWhatsAppConfirmation(context, r.namaSiswa, r.bulan, r.metode, r.jumlah, r.denda)
             }
         },
         onKembali = onKembali

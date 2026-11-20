@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · DashboardScreen.kt
+// Isi file : Dashboard: saldo, pemasukan, pengeluaran, transaksi terbaru.
+// Penanda  : CARI-SALDO
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.background
@@ -24,6 +31,7 @@ import com.kastep.app.data.KastepViewModel
 import com.kastep.app.data.UserRole
 import com.kastep.app.ui.theme.*
 
+// CARI-SALDO | Tiga kartu ringkasan + 10 transaksi terbaru (diurutkan menurut tanggal).
 @Composable
 fun DashboardScreen(
     viewModel: KastepViewModel,
@@ -40,7 +48,7 @@ fun DashboardScreen(
     val recentTxList = (
         paymentRecords.map { RecentTx("Pembayaran - ${it.namaSiswa}", it.tanggal, it.jumlah, true) } +
         pengeluaranList.map { RecentTx(it.keterangan, it.tanggal, it.jumlah, false) }
-    ).take(10)
+    ).sortedByDescending { com.kastep.app.data.KastepRepository.kunciTanggal(it.date) }.take(10)
 
     Column(modifier = Modifier.fillMaxSize().background(KastepBlack)) {
         // Top bar

@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · SplashScreen.kt
+// Isi file : Layar pembuka dengan logo dan animasi memuat.
+// Penanda  : CARI-MULAI
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.screens
 
 import androidx.compose.animation.core.Animatable
@@ -37,7 +44,9 @@ import com.kastep.app.ui.theme.KastepBlack
 import com.kastep.app.ui.theme.KastepCyan
 import com.kastep.app.ui.theme.KastepGray
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.layout.padding
 
+// CARI-MULAI | Tampil 2,5 detik lalu pindah ke Login atau Dashboard (diatur di NavGraph).
 @Composable
 fun SplashScreen(onNavigateToLogin: () -> Unit) {
     LaunchedEffect(Unit) {
@@ -156,27 +165,12 @@ fun SplashScreen(onNavigateToLogin: () -> Unit) {
             }
         }
 
-        // Loading text at bottom
+        // Teks memuat di bagian bawah (sebelumnya tergambar dua kali)
         Text(
-            text = "Loading...",
+            text = "Memuat...",
             color = KastepGray,
             fontSize = 14.sp,
-            modifier = Modifier.align(Alignment.BottomCenter)
-                .then(
-                    Modifier.background(Color.Transparent)
-                ),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 48.dp)
         )
-
-        // Bottom padding for loading text
-        Box(modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = "Loading...",
-                color = KastepGray,
-                fontSize = 14.sp,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .then(Modifier.height(60.dp))
-            )
-        }
     }
 }

@@ -13,8 +13,8 @@ android {
         applicationId = "com.kastep.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 9
-        versionName = "1.2.4"
+        versionCode = 11
+        versionName = "1.3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

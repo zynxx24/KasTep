@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · NavGraph.kt
+// Isi file : Daftar semua halaman dan perpindahan antarhalaman.
+// Penanda  : CARI-NAVIGASI, CARI-LOGIN
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.navigation
 
 import androidx.compose.runtime.Composable
@@ -22,6 +29,7 @@ import com.kastep.app.ui.screens.RegisterScreen
 import com.kastep.app.ui.screens.RiwayatPembayaranScreen
 import com.kastep.app.ui.screens.SplashScreen
 
+// CARI-NAVIGASI CARI-LOGIN | Setiap composable(Screen.X.route) = satu halaman. Splash langsung ke Dashboard bila sesi login masih aktif.
 @Composable
 fun NavGraph(
     navController: NavHostController,
@@ -65,7 +73,9 @@ fun NavGraph(
         composable(Screen.Splash.route) {
             SplashScreen(
                 onNavigateToLogin = {
-                    navController.navigate(Screen.Login.route) {
+                    // Sesi yang masih aktif langsung masuk ke Dashboard, tidak perlu login ulang
+                    val tujuan = if (viewModel.isLoggedIn.value) Screen.Dashboard.route else Screen.Login.route
+                    navController.navigate(tujuan) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 }
@@ -93,7 +103,8 @@ fun NavGraph(
                     navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
-                }
+                },
+                onBackToLogin = { navController.popBackStack() }
             )
         }
 
@@ -125,7 +136,8 @@ fun NavGraph(
             RiwayatPembayaranScreen(
                 viewModel = viewModel,
                 onOpenDrawer = onOpenDrawer,
-                onNavigateToProfile = navigateToProfile
+                onNavigateToProfile = navigateToProfile,
+                onBayarKas = { navController.navigate(Screen.Pembayaran.route) { launchSingleTop = true } }
             )
         }
 

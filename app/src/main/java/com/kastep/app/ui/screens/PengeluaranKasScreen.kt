@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · PengeluaranKasScreen.kt
+// Isi file : Pengeluaran Kas: form tambah, daftar, edit, hapus dengan konfirmasi.
+// Penanda  : CARI-PENGELUARAN, CARI-VALIDASI
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.background
@@ -26,6 +33,7 @@ import com.kastep.app.data.Pengeluaran
 import com.kastep.app.data.UserRole
 import com.kastep.app.ui.theme.*
 
+// CARI-PENGELUARAN CARI-VALIDASI | Tanggal otomatis hari ini, divalidasi kalender (31/02 ditolak), disimpan sebagai "05 Oktober 2026".
 @Composable
 fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
     val userProfile by viewModel.userProfile.collectAsState()
@@ -33,9 +41,12 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, o
     val currentDate = viewModel.getCurrentDateString()
     val isAdmin = userProfile.role == UserRole.ADMIN
 
-    var tanggalHari by remember { mutableStateOf("") }
-    var tanggalBulan by remember { mutableStateOf("") }
-    var tanggalTahun by remember { mutableStateOf("") }
+    // Tanggal otomatis diisi hari ini
+    val today = remember { java.util.Calendar.getInstance() }
+    var tanggalHari by remember { mutableStateOf("%02d".format(today.get(java.util.Calendar.DAY_OF_MONTH))) }
+    var tanggalBulan by remember { mutableStateOf("%02d".format(today.get(java.util.Calendar.MONTH) + 1)) }
+    var tanggalTahun by remember { mutableStateOf(today.get(java.util.Calendar.YEAR).toString()) }
+    var hapusTarget by remember { mutableStateOf<Pengeluaran?>(null) }
     var jumlah by remember { mutableStateOf("") }
     var keterangan by remember { mutableStateOf("") }
     var errorMsg by remember { mutableStateOf<String?>(null) }
@@ -87,19 +98,19 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, o
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedTextField(
-                        value = tanggalHari, onValueChange = { if (it.length <= 2) tanggalHari = it },
+                        value = tanggalHari, onValueChange = { v -> v.filter { it.isDigit() }.take(2).let { tanggalHari = it } },
                         modifier = Modifier.weight(0.8f).height(56.dp), placeholder = { Text("DD") },
                         colors = textFieldColors, shape = RoundedCornerShape(12.dp), singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                     OutlinedTextField(
-                        value = tanggalBulan, onValueChange = { if (it.length <= 2) tanggalBulan = it },
+                        value = tanggalBulan, onValueChange = { v -> v.filter { it.isDigit() }.take(2).let { tanggalBulan = it } },
                         modifier = Modifier.weight(1.2f).height(56.dp), placeholder = { Text("MM") },
                         colors = textFieldColors, shape = RoundedCornerShape(12.dp), singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                     OutlinedTextField(
-                        value = tanggalTahun, onValueChange = { if (it.length <= 4) tanggalTahun = it },
+                        value = tanggalTahun, onValueChange = { v -> v.filter { it.isDigit() }.take(4).let { tanggalTahun = it } },
                         modifier = Modifier.weight(1.2f).height(56.dp), placeholder = { Text("YYYY") },
                         colors = textFieldColors, shape = RoundedCornerShape(12.dp), singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -114,7 +125,7 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, o
                 Text("Jumlah", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
-                    value = jumlah, onValueChange = { jumlah = it; errorMsg = null; successMsg = null },
+                    value = jumlah, onValueChange = { v -> jumlah = v.filter { it.isDigit() }.take(9); errorMsg = null; successMsg = null },
                     modifier = Modifier.fillMaxWidth().height(56.dp), placeholder = { Text("Rp 0") },
                     colors = textFieldColors, shape = RoundedCornerShape(28.dp), singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -164,6 +175,13 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, o
                         successMsg = null
                         return@Button
                     }
+                    // Tolak tanggal yang tidak ada di kalender, misalnya 31/02
+                    val cal = java.util.Calendar.getInstance().apply { isLenient = false; clear(); set(year, month - 1, day) }
+                    if (runCatching { cal.time }.isFailure) {
+                        errorMsg = "Tanggal $day/$month/$year tidak ada di kalender"
+                        successMsg = null
+                        return@Button
+                    }
                     if (amount <= 0) {
                         errorMsg = "Jumlah pengeluaran harus lebih dari Rp 0"
                         successMsg = null
@@ -175,9 +193,8 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, o
                         return@Button
                     }
 
-                    val formattedDay = String.format("%02d", day)
-                    val formattedMonth = String.format("%02d", month)
-                    val tanggal = "$formattedDay/$formattedMonth/$year"
+                    // Simpan dengan format yang sama seperti data lain: "05 Oktober 2026"
+                    val tanggal = java.text.SimpleDateFormat("dd MMMM yyyy", java.util.Locale("id", "ID")).format(cal.time)
 
                     val result = viewModel.addPengeluaran(tanggal, amount, keterangan)
                     if (result != null) {
@@ -185,7 +202,6 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, o
                     } else {
                         successMsg = "Pengeluaran berhasil ditambahkan!"
                         errorMsg = null
-                        tanggalHari = ""; tanggalBulan = ""; tanggalTahun = ""
                         jumlah = ""; keterangan = ""
                     }
                 },
@@ -210,13 +226,20 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, o
         }
 
         // Riwayat Pengeluaran List
-        Text("Riwayat Pengeluaran", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 20.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Riwayat Pengeluaran", color = KastepWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("Total Rp ${KastepViewModel.formatRupiah(pengeluaranList.sumOf { it.jumlah })}", color = KastepRed, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        }
         Spacer(modifier = Modifier.height(12.dp))
 
         if (pengeluaranList.isEmpty()) {
             Text("Belum ada pengeluaran tercatat.", color = KastepGray, fontSize = 14.sp, modifier = Modifier.padding(horizontal = 20.dp))
         } else {
-            pengeluaranList.forEach { p ->
+            pengeluaranList.sortedByDescending { com.kastep.app.data.KastepRepository.kunciTanggal(it.tanggal) }.forEach { p ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp)
                         .then(if (isAdmin) Modifier.clickable { selectedPengeluaran = p; showEditDialog = true } else Modifier),
@@ -240,7 +263,7 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, o
                                 Row {
                                     Icon(Icons.Default.Edit, contentDescription = "Edit", tint = KastepCyan, modifier = Modifier.size(18.dp).clickable { selectedPengeluaran = p; showEditDialog = true })
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = KastepRed, modifier = Modifier.size(18.dp).clickable { viewModel.deletePengeluaran(p.id) })
+                                    Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = KastepRed, modifier = Modifier.size(18.dp).clickable { hapusTarget = p })
                                 }
                             }
                         }
@@ -258,38 +281,57 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, o
             pengeluaran = selectedPengeluaran!!,
             onDismiss = { showEditDialog = false; selectedPengeluaran = null },
             onSave = { tanggal, amt, ket ->
-                viewModel.updatePengeluaran(selectedPengeluaran!!.id, tanggal, amt, ket)
-                showEditDialog = false; selectedPengeluaran = null
+                val err = viewModel.updatePengeluaran(selectedPengeluaran!!.id, tanggal, amt, ket)
+                if (err == null) { showEditDialog = false; selectedPengeluaran = null }
+                err
             },
             onDelete = {
-                viewModel.deletePengeluaran(selectedPengeluaran!!.id)
+                hapusTarget = selectedPengeluaran
                 showEditDialog = false; selectedPengeluaran = null
             }
         )
     }
+
+    hapusTarget?.let { target ->
+        AlertDialog(
+            onDismissRequest = { hapusTarget = null },
+            title = { Text("Hapus Pengeluaran?", fontWeight = FontWeight.Bold) },
+            text = { Text("\"${target.keterangan}\" sebesar Rp ${KastepViewModel.formatRupiah(target.jumlah)} akan dihapus dan saldo kas bertambah kembali.") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.deletePengeluaran(target.id); hapusTarget = null }) { Text("Hapus", color = KastepRed) }
+            },
+            dismissButton = { TextButton(onClick = { hapusTarget = null }) { Text("Batal") } }
+        )
+    }
 }
 
+// CARI-PENGELUARAN | Dialog edit; pesan error tampil bila isian salah.
 @Composable
 private fun EditPengeluaranDialog(
     pengeluaran: Pengeluaran,
     onDismiss: () -> Unit,
-    onSave: (String, Long, String) -> Unit,
+    onSave: (String, Long, String) -> String?,
     onDelete: () -> Unit
 ) {
     var tanggal by remember { mutableStateOf(pengeluaran.tanggal) }
     var jumlah by remember { mutableStateOf(pengeluaran.jumlah.toString()) }
     var keterangan by remember { mutableStateOf(pengeluaran.keterangan) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Edit Pengeluaran", fontWeight = FontWeight.Bold) },
         text = {
             Column {
-                OutlinedTextField(value = tanggal, onValueChange = { tanggal = it }, label = { Text("Tanggal") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(value = tanggal, onValueChange = { tanggal = it; error = null }, label = { Text("Tanggal (contoh: 15 Juli 2026)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = jumlah, onValueChange = { jumlah = it }, label = { Text("Jumlah (Rp)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                OutlinedTextField(value = jumlah, onValueChange = { v -> jumlah = v.filter { it.isDigit() }.take(9); error = null }, label = { Text("Jumlah (Rp)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(value = keterangan, onValueChange = { keterangan = it }, label = { Text("Keterangan") }, modifier = Modifier.fillMaxWidth(), maxLines = 3)
+                if (error != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(error!!, color = KastepRed, fontSize = 12.sp)
+                }
                 Spacer(modifier = Modifier.height(12.dp))
                 TextButton(onClick = onDelete, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Delete, contentDescription = null, tint = KastepRed, modifier = Modifier.size(18.dp))
@@ -301,7 +343,7 @@ private fun EditPengeluaranDialog(
         confirmButton = {
             TextButton(onClick = {
                 val amt = jumlah.toLongOrNull() ?: 0L
-                if (amt > 0 && keterangan.isNotBlank()) onSave(tanggal, amt, keterangan)
+                error = onSave(tanggal, amt, keterangan)
             }) { Text("Simpan") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Batal") } }

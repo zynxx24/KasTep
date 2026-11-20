@@ -1,3 +1,10 @@
+// ==========================================================================
+// PETA FILE · KASTEP (Kelompok 1) · ProfileScreen.kt
+// Isi file : Profil akun: edit akun dan keluar.
+// Penanda  : CARI-PROFIL, CARI-LOGIN
+// Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
+//            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
+// ==========================================================================
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.background
@@ -51,7 +58,9 @@ import com.kastep.app.ui.theme.KastepCardDark
 import com.kastep.app.ui.theme.KastepGray
 import com.kastep.app.ui.theme.KastepRed
 import com.kastep.app.ui.theme.KastepWhite
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
+// CARI-PROFIL CARI-LOGIN | Tombol Simpan di Edit Akun memanggil viewModel.updateProfile; tombol Keluar memanggil logout.
 @Composable
 fun ProfileScreen(
     viewModel: KastepViewModel,
@@ -77,8 +86,8 @@ fun ProfileScreen(
         ) {
             IconButton(onClick = onBack) {
                 Icon(
-                    Icons.Default.Menu,
-                    contentDescription = "Menu",
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Kembali",
                     tint = KastepWhite,
                     modifier = Modifier.size(28.dp)
                 )
@@ -172,6 +181,7 @@ fun ProfileScreen(
     if (showEditDialog) {
         var editNama by remember { mutableStateOf(userProfile.nama) }
         var editNoHp by remember { mutableStateOf(userProfile.noHp) }
+        var editError by remember { mutableStateOf<String?>(null) }
 
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
@@ -180,15 +190,17 @@ fun ProfileScreen(
                 Column {
                     OutlinedTextField(
                         value = editNama,
-                        onValueChange = { editNama = it },
+                        onValueChange = { editNama = it; editError = null },
                         label = { Text("Nama") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        isError = editError != null,
+                        supportingText = { editError?.let { Text(it, color = KastepRed) } }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = editNoHp,
-                        onValueChange = { editNoHp = it },
+                        onValueChange = { v -> editNoHp = v.filter { it.isDigit() || it == '+' } },
                         label = { Text("No. HP") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
@@ -196,7 +208,11 @@ fun ProfileScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showEditDialog = false }) {
+                // Sebelumnya tombol ini hanya menutup dialog tanpa menyimpan
+                TextButton(onClick = {
+                    editError = viewModel.updateProfile(editNama, editNoHp)
+                    if (editError == null) showEditDialog = false
+                }) {
                     Text("Simpan")
                 }
             },
