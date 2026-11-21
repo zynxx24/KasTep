@@ -5,6 +5,9 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU
+//  Profil akun: avatar, nama, email, No. HP, lalu dua menu: Edit Akun (ubah nama dan No. HP lewat viewModel.updateProfile)
+//  dan Keluar (dialog konfirmasi lalu viewModel.logout, kembali ke Login).
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.background

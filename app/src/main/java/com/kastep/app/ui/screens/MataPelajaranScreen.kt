@@ -5,6 +5,12 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU : LAYAR "MATA PELAJARAN" (jadwal pelajaran)
+//  Dua tabel tetap (data ditulis langsung di file, tidak ada hubungannya dengan kas):
+//    1. Tabel Jadwal Pelajaran Senin sampai Jumat, kolom JP 1 sampai 10, blok berwarna per mapel
+//    2. Tabel Alokasi Waktu (jam mulai dan selesai tiap JP)
+//  Mengubah jadwal: edit daftar ScheduleEntry(mapel, guru, warna, jam mulai, lama jam).
+//  Senin punya baris khusus (SeninRow) karena dua praktik (PDL RPL dan PDL KL) berjalan bersamaan.
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.background

@@ -5,6 +5,11 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU : LAYAR "PENGELUARAN KAS"
+//  ADMIN : form catat pengeluaran (Tanggal dd/mm/yyyy otomatis hari ini, Jumlah, Keterangan) + daftar riwayat (tekan baris untuk edit atau hapus).
+//  USER  : hanya melihat daftar riwayat pengeluaran (form tidak tampil).
+//  Validasi tanggal: harus ada di kalender (31/02 ditolak). Tanggal disimpan sebagai teks "05 Oktober 2026".
+//  Simpan -> viewModel.addPengeluaran -> saldo turun otomatis.
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.background

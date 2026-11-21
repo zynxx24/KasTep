@@ -5,6 +5,10 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU
+//  Layar login: logo KASTEP, kolom Email, kolom Password (ikon mata), pesan error merah, tombol Masuk, tautan Daftar.
+//  Tombol Masuk memanggil viewModel.login(email, password). Hasil null = berhasil (onLoginSuccess). Teks = pesan error dari KastepRepository.login.
+//  Akun bendahara bawaan: admin@gmail.com / admin123.
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.Canvas

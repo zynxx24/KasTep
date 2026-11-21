@@ -398,6 +398,20 @@ Output file `KASTEP.apk` akan otomatis disalin ke direktori utama proyek.
 
 ---
 
+## 📖 Panduan Membaca Kode (untuk presentasi dan tanya jawab)
+
+| File | Isinya |
+|---|---|
+| `PETA-LAYAR.md` | Tabel "yang terlihat di layar → file dan nomor baris" (grafik, saldo, pembayaran, denda, dll) |
+| `KAMUS-KODE.md` | Arti istilah Kotlin dan Compose yang muncul di kode, dengan bahasa sederhana |
+| `TANYA-JAWAB.md` | 33 tebakan pertanyaan beserta jawaban dan letak kodenya |
+| `PETA-KODE.md` | Daftar penanda `CARI-...` dan `TANYA-GURU` |
+
+Setiap file `.kt` diawali blok **BACA INI DULU**, dan tiap bagian penting punya komentar penjelasan.
+Di Android Studio tekan **Ctrl+Shift+F** lalu ketik `BACA INI DULU` atau `TANYA-GURU`.
+
+---
+
 ## 👨‍💻 Developer & Kontributor
 
 Dikembangkan dengan 💙 oleh Tim Pengembang **KASTEP App** untuk kelas **XII PPLG**.  

@@ -29,6 +29,12 @@ import com.kastep.app.ui.screens.RegisterScreen
 import com.kastep.app.ui.screens.RiwayatPembayaranScreen
 import com.kastep.app.ui.screens.SplashScreen
 
+// PETA HALAMAN. NavHost memilih halaman sesuai rute; tiap composable(Screen.X.route) memanggil satu layar.
+// Alur penting:
+//   Splash -> Login (belum login) atau Dashboard (sesi aktif)
+//   Login berhasil -> Dashboard (Login dihapus dari tumpukan supaya tombol Kembali tidak balik ke Login)
+//   Pembayaran berhasil -> PembayaranBerhasil (layar animasi sukses + tombol WhatsApp)
+// LaunchedEffect(isLoggedIn) di atas: bila di halaman mana pun pengguna keluar (isLoggedIn false), otomatis kembali ke Login.
 // CARI-NAVIGASI CARI-LOGIN | Setiap composable(Screen.X.route) = satu halaman. Splash langsung ke Dashboard bila sesi login masih aktif.
 @Composable
 fun NavGraph(

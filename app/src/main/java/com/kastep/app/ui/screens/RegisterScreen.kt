@@ -5,6 +5,9 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU
+//  Form daftar: Nama, Email, NIS, Kelas, No. HP, Password. Memanggil viewModel.register. Akun baru berperan USER.
+//  Validasi ada di KastepRepository.register (nama min 3 huruf, email valid, password min 5, email belum terdaftar).
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.Canvas

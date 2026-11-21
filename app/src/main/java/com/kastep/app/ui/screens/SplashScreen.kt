@@ -5,6 +5,9 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU
+//  Layar pembuka berisi ikon dompet (digambar Canvas), tulisan KASTEP, dan garis loading animasi. Tampil sekitar 2,5 detik lalu
+//  onNavigateToLogin dipanggil. NavGraph memutuskan tujuan: Dashboard bila sesi masih aktif, Login bila tidak.
 package com.kastep.app.ui.screens
 
 import androidx.compose.animation.core.Animatable

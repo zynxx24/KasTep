@@ -5,6 +5,14 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU
+//  File pertama yang jalan saat aplikasi dibuka. Alur:
+//    1. MainActivity.onCreate memasang tema gelap KASTEP dan memanggil KastepApp
+//    2. KastepApp membuat navController, menu samping (drawer), dan NavGraph
+//    3. NavGraph mulai dari SplashScreen, lalu ke Login atau Dashboard (bila sesi masih aktif)
+//  Navigasi KASTEP memakai MENU SAMPING (geser dari kiri atau tekan ikon menu), bukan tab bawah.
+//  Isi menu: Dashboard, Data Siswa, Pembayaran, Riwayat Bayar, Pengeluaran, Mata Pelajaran, Laporan Kas.
+//  KastepViewModel dibuat sekali di sini (by viewModels()) dan dipakai bersama semua layar.
 package com.kastep.app
 
 import android.os.Bundle
@@ -88,6 +96,7 @@ private data class DrawerMenuItem(
     val route: String
 )
 
+// Kerangka aplikasi. drawerEnabled = true hanya di halaman setelah login (menu samping tidak boleh dibuka di Login/Register/Splash).
 // Kerangka aplikasi: menu samping (drawer) + NavGraph. Drawer hanya aktif setelah login.
 @Composable
 fun KastepApp(viewModel: KastepViewModel) {
@@ -111,6 +120,8 @@ fun KastepApp(viewModel: KastepViewModel) {
         Screen.PembayaranBerhasil.route
     )
 
+    // DAFTAR MENU SAMPING. Satu DrawerMenuItem = tulisan, ikon, dan rute (nama halaman di Screen.kt). Menekan menu -> navController.navigate(rute).
+    // Menu yang sedang dibuka diberi latar biru. Menambah menu: tambah satu baris di sini dan satu composable di NavGraph.
     // Drawer items matching the design exactly:
     // Dashboard, Data Siswa, Pembayaran, Pengeluaran, Mata Pelajaran, Laporan Kas
     // CARI-NAVIGASI | Isi menu samping. Tambah menu = DrawerMenuItem(label, ikon, Screen.X.route) + daftarkan di NavGraph.
@@ -124,6 +135,7 @@ fun KastepApp(viewModel: KastepViewModel) {
         DrawerMenuItem("Laporan Kas", Icons.Default.Description, Screen.LaporanKas.route)
     )
 
+    // ModalNavigationDrawer = menu samping yang menutupi layar. Isi layarnya (di dalam kurung terakhir) adalah NavGraph, yaitu halaman-halaman aplikasi.
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = drawerEnabled,

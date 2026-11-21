@@ -5,6 +5,11 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU : LAYAR "PEMBAYARAN BERHASIL"
+//  Tampil setelah processPayment sukses. Mengambil pembayaran TERBARU (records[0], karena repository menaruh yang baru di indeks 0),
+//  lalu menampilkan jumlah, nama siswa, bulan, dan metode. Ada animasi: uang melayang, kembang api, maskot (KasMascot), dan kubah hijau.
+//  Tombol putih "Konfirmasi WA" memanggil sendWhatsAppConfirmation (dari PembayaranScreen.kt). Tombol biru tua "Kembali" menutup layar.
+//  Semua gambar di sini digambar dengan kode (Canvas), bukan file gambar.
 package com.kastep.app.ui.screens
 
 import androidx.compose.animation.core.Animatable

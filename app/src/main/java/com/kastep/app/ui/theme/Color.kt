@@ -9,6 +9,8 @@ package com.kastep.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// Daftar warna KASTEP (tema gelap): KastepBlack (latar), KastepCardDark (kartu), KastepBlue / KastepCyan (aksen), KastepGreen (lunas, pemasukan),
+// KastepRed (denda, pengeluaran), KastepWhite dan KastepGray (teks). Ganti nilai hex di sini untuk mengubah tema.
 // KASTEP Design Colors — Pure dark theme with blue/cyan accents
 // CARI-TEMA | Ubah nilai warna di file ini untuk mengganti tema.
 val KastepBlack = Color(0xFF000000)

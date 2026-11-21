@@ -5,6 +5,16 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU : LAYAR "PEMBAYARAN" (bayar kas)
+//  Alur pengguna (urut):
+//    1. Pilih METODE: QRIS, e-wallet (DANA, GoPay, OVO), bank (BCA, Mandiri, BNI), atau CASH. Metode dipilih = kartu berwarna.
+//    2. Untuk e-wallet dan bank, muncul kotak "Transfer via ..." berisi nomor tujuan (accNo). Nomor ini masih NOMOR CONTOH, ganti dengan rekening kelas asli.
+//    3. Tekan tombol hijau PEMBAYARAN -> dialog Konfirmasi (PaymentConfirmDialog): pilih siswa lalu pilih bulan.
+//       Dialog menghitung otomatis: sisa kas bulan itu + denda = Total Bayar. Bulan yang sudah LUNAS tidak bisa dipilih.
+//    4. Tekan konfirmasi -> viewModel.processPayment mencatat pembayaran -> pindah ke layar Pembayaran Berhasil.
+//    5. Di layar Berhasil ada tombol WhatsApp yang mengirim konfirmasi ke bendahara (sendWhatsAppConfirmation).
+//  Untuk QRIS: dialog gambar QRIS (res/drawable/ic_qris) tampil dulu, "Lanjut" membuka dialog konfirmasi yang sama.
+//  Catatan jujur: pembayaran langsung berstatus LUNAS tanpa verifikasi admin. Bendahara mengecek uang masuk secara manual.
 package com.kastep.app.ui.screens
 
 import android.content.Context
@@ -47,6 +57,7 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
     val currentDate = viewModel.getCurrentDateString()
     val context = LocalContext.current
 
+    // selectedMethod = metode yang dipilih (null = belum ada). showPaymentDialog / showQrisDialog = dialog mana yang sedang tampil.
     var selectedMethod by remember { mutableStateOf<String?>(null) }
     var showPaymentDialog by remember { mutableStateOf(false) }
     var showQrisDialog by remember { mutableStateOf(false) }
@@ -113,6 +124,7 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
             }
         }
 
+        // Kotak nomor tujuan transfer. accNo di bawah berisi nomor CONTOH (belum rekening asli kelas). Untuk QRIS dan Cash kotak ini tidak tampil.
         // Simulated account numbers
         if (selectedMethod != null && selectedMethod != "Cash" && selectedMethod != "QRIS") {
             Card(
@@ -143,6 +155,7 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Tombol besar PEMBAYARAN. Mati (abu-abu) sampai ada metode dipilih (enabled = selectedMethod != null).
         // Big green PEMBAYARAN button
         Button(
             onClick = {
@@ -159,6 +172,7 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
         Spacer(modifier = Modifier.height(32.dp))
     }
 
+    // Dialog konfirmasi. onConfirm memanggil viewModel.processPayment; hasil null = sukses -> pindah ke layar Berhasil, selain itu pesan error ditampilkan sebagai Toast.
     // Payment Dialog: select student + month
     if (showPaymentDialog) {
         PaymentConfirmDialog(
@@ -192,6 +206,12 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
 
 }
 
+// DIALOG KONFIRMASI PEMBAYARAN. Hitungan di dalamnya:
+//   denda      = viewModel.calculateDenda(siswa, bulan)         (Rp5.000 x bulan terlambat bila belum lunas)
+//   kasBulanan = viewModel.sisaKas(siswa, bulan)                (minggu belum bayar x Rp5.000)
+//   totalBayar = kasBulanan + denda                              (angka yang tampil dan dicatat)
+// Daftar siswa menandai "Belum: Juli, Agustus" atau "Lunas semua" (siswa yang lunas semua tidak bisa dipilih).
+// canPay = siswa dan bulan sudah dipilih dan bulan itu belum lunas. Tombol bayar mati bila canPay false.
 // CARI-PEMBAYARAN CARI-DENDA | Total bayar = sisa minggu x Rp5.000 + denda. Bulan yang sudah lunas tidak bisa dipilih.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -360,6 +380,8 @@ private fun QrisSimulationDialog(onDismiss: () -> Unit, onProceed: () -> Unit) {
     )
 }
 
+// Membuka WhatsApp bendahara (nomor 6289520371942) dengan pesan konfirmasi berisi nama, bulan, metode, kas, denda, dan total.
+// Pesan disusun lalu di-encode untuk URL wa.me. Bila WhatsApp tidak ada, diam saja (try catch) agar tidak crash.
 // CARI-WHATSAPP | Membuka WhatsApp dengan pesan konfirmasi. Nomor tujuan ada di variabel phone.
 internal fun sendWhatsAppConfirmation(context: Context, studentName: String, bulan: String, method: String, totalBayar: Long, denda: Long) {
     val phone = "6289520371942"
@@ -386,6 +408,7 @@ private fun PaymentMethodSection(content: @Composable () -> Unit) {
     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) { content() }
 }
 
+// Kartu logo metode bayar yang bisa dipilih. Terpilih: berlatar cyan transparan.
 // Kartu logo metode bayar (DANA, GoPay, BCA, dll) yang bisa dipilih.
 @Composable
 private fun PaymentIconCardSelectable(iconRes: Int, label: String, selected: Boolean, onClick: () -> Unit) {

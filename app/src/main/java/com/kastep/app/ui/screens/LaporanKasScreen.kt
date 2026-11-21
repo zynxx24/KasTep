@@ -5,6 +5,21 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU : LAYAR "LAPORAN KAS" (tempat GRAFIK KASTEP)
+//  Susunan dari atas ke bawah:
+//    1. Top bar
+//    2. Dropdown "Periode"      Semua Periode atau satu bulan (Juli 2026 dst). Mengubah angka dua kartu di bawahnya.
+//    3. Dua kartu               Total Pemasukan dan Total Pengeluaran (bisa DITEKAN untuk melihat rincian)
+//    4. Kartu besar             Saldo Akhir (Semua Periode) atau Selisih bulan terpilih
+//    5. GRAFIK                  "Grafis Pemasukan & Pengeluaran" = IncomeExpenseChart
+//    6. Tombol Bagikan Laporan  kirim ringkasan teks ke WhatsApp atau aplikasi lain
+//  Kartu Pemasukan dibuka -> dialog Detail Pemasukan: per bulan, jumlah siswa Lunas dan Belum (NAMA yang belum hanya terlihat ADMIN).
+//  Kartu Pengeluaran dibuka -> dialog daftar pengeluaran dan totalnya.
+//  JAWABAN CEPAT:
+//   - Grafik di mana?   -> IncomeExpenseChart di bawah file ini. Jenis: GRAFIK BATANG BERPASANGAN (biru = pemasukan, abu = pengeluaran) per bulan.
+//   - Isi grafik?       -> 6 bulan terakhir yang punya data. Sumbu kiri = rupiah dalam ribuan ("20rb"), sumbu bawah = nama bulan.
+//   - Digambar pakai?   -> Canvas manual, tanpa library grafik.
+//   - Periode memengaruhi grafik? -> TIDAK. Grafik selalu 6 bulan terakhir, periode hanya mengubah kartu angka.
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.Canvas
@@ -40,6 +55,7 @@ import com.kastep.app.data.StatusBayar
 import com.kastep.app.data.UserRole
 import com.kastep.app.ui.theme.*
 
+// State penting: selectedPeriode (periode terpilih), showPemasukanSheet / showPengeluaranSheet (dialog rincian), isAdmin (menentukan nama yang belum bayar terlihat atau tidak).
 // CARI-LAPORAN CARI-SALDO | Pemasukan & pengeluaran mengikuti periode yang dipilih; Semua Periode menampilkan saldo akhir.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +75,8 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
     val periodeOptions = listOf("Semua Periode") + bulanKas
     val context = androidx.compose.ui.platform.LocalContext.current
 
+    // Menyaring data sesuai periode: "Semua Periode" = semua data. Pilihan bulan = pembayaran bulan itu dan pengeluaran yang tanggalnya di bulan itu.
+    // filteredIncome dan filteredExpense = jumlah hasil saringan, ditampilkan di dua kartu.
     val semua = selectedPeriode == "Semua Periode"
     val periodeYm = com.kastep.app.data.KastepRepository.parseBulan(selectedPeriode)
     val filteredPayments = if (semua) paymentRecords else paymentRecords.filter { it.bulan == selectedPeriode }
@@ -98,6 +116,7 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
             }
         }
 
+        // Dropdown pilihan periode. Isinya "Semua Periode" ditambah semua bulan tagihan (Juli 2026 sampai sekarang).
         // Periode dropdown - CLICKABLE
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
@@ -130,6 +149,7 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
 
         // Filtered data based on period
 
+        // Dua kartu angka (ditekan = buka dialog rincian). Kartu besar di bawahnya: Saldo Akhir bila Semua Periode, bila satu bulan jadi "Selisih <bulan>" (pemasukan dikurangi pengeluaran, bisa minus).
         // Summary cards — CLICKABLE
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ReportSummaryCard(
@@ -158,6 +178,7 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // GRAFIK: kartu gelap berisi judul, legenda (kotak biru = Pemasukan, kotak abu = Pengeluaran), lalu IncomeExpenseChart setinggi 220.dp.
         // Chart card
         Card(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -180,6 +201,8 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
+                // Menentukan bulan yang digambar: kumpulkan semua bulan yang punya pembayaran atau pengeluaran, buang yang kembar (distinct),
+                // urutkan dari yang paling lama, ambil 6 terakhir (takeLast(6)). Lalu per bulan dijumlahkan pemasukan dan pengeluarannya.
                 // Data grafik: pemasukan & pengeluaran nyata per bulan
                 val bulanGrafik = (paymentRecords.mapNotNull { com.kastep.app.data.KastepRepository.parseBulan(it.bulan) } +
                     pengeluaranList.mapNotNull { com.kastep.app.data.KastepRepository.bulanDariTanggal(it.tanggal) })
@@ -195,6 +218,7 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Tombol Bagikan Laporan: membuat Intent ACTION_SEND berisi teks dari viewModel.generateReportText(), lalu menampilkan pilihan aplikasi (WhatsApp, dll).
         // Bagikan laporan ringkas ke WhatsApp / aplikasi lain
         Button(
             onClick = {
@@ -216,6 +240,8 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
         Spacer(modifier = Modifier.height(32.dp))
     }
 
+    // Dialog Detail Pemasukan. Per bulan: jumlah siswa LUNAS dan BELUM. Daftar nama yang belum (dengan kekurangan dan denda) hanya tampil bila isAdmin.
+    // Akun USER hanya melihat jumlahnya supaya yang menunggak tidak dipermalukan.
     // Pemasukan Bottom Sheet - shows paid/unpaid students
     if (showPemasukanSheet) {
         AlertDialog(
@@ -248,6 +274,7 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
         )
     }
 
+    // Dialog Detail Pengeluaran: daftar keterangan, tanggal, nominal, dan total untuk periode terpilih.
     // Pengeluaran Bottom Sheet - shows expense list
     if (showPengeluaranSheet) {
         AlertDialog(
@@ -278,6 +305,7 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
     }
 }
 
+// Kartu bergaris warna berisi ikon koin, label, dan angka (dipakai Pemasukan, Pengeluaran, dan Saldo).
 // Kartu Total Pemasukan / Total Pengeluaran, bisa ditekan untuk melihat rincian.
 @Composable
 private fun ReportSummaryCard(modifier: Modifier = Modifier, label: String, amount: String, borderColor: Color, labelColor: Color, coinColor: Color) {
@@ -309,6 +337,17 @@ private fun CoinStackIcon(color: Color) {
     }
 }
 
+// =====================  GRAFIK KAS KASTEP  =====================
+// INI KODE YANG MENGGAMBAR GRAFIK. Jenis: GRAFIK BATANG BERPASANGAN. Digambar manual di Canvas, tanpa library.
+// Input: labels (nama bulan), income (pemasukan per bulan), expense (pengeluaran per bulan), maksimal 6 bulan.
+// LANGKAH GAMBAR:
+//   1. maxValue = nilai terbesar dari semua pemasukan dan pengeluaran (minimal 1). Semua tinggi batang dibandingkan dengan angka ini.
+//   2. Tentukan area gambar: chartLeft 44.dp disisakan untuk tulisan sumbu Y, chartBottom disisakan untuk nama bulan.
+//   3. 5 garis bantu mendatar (i dari 0 sampai 4) dengan label ribuan di kiri, contoh "0rb", "20rb", "40rb".
+//   4. slot = lebar satu bulan = lebar area dibagi jumlah bulan. barW = lebar batang (maksimal 18.dp).
+//   5. Tiap bulan: batang BIRU (pemasukan, tinggi = lebar area x pemasukan/maxValue) di kiri, batang ABU (pengeluaran) di kanan, nama bulan di bawahnya.
+//   6. Garis dasar di paling bawah.
+// Batang paling tinggi = bulan dengan nilai terbesar. Bulan tanpa data tidak digambar.
 // CARI-GRAFIK | Grafik batang 6 bulan terakhir: biru = pemasukan, abu = pengeluaran.
 @Composable
 private fun IncomeExpenseChart(labels: List<String>, income: List<Long>, expense: List<Long>, modifier: Modifier = Modifier) {

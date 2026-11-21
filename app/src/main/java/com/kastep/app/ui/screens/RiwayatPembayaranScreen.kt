@@ -5,6 +5,9 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU : LAYAR "RIWAYAT BAYAR"
+//  Tabel semua pembayaran (kolom NO, Tanggal, Nama Siswa, Jumlah). Ada kolom cari (nama atau bulan), tombol Bayar Kas (menuju layar Pembayaran),
+//  dan nomor halaman: 8 baris per halaman (itemsPerPage = 8). Data dari viewModel.paymentRecords.
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.background

@@ -1,3 +1,6 @@
+//  BACA INI DULU
+//  Maskot KASTEP (koin bertopi dan berkacamata hitam) digambar SELURUHNYA dengan kode Canvas (bukan file gambar).
+//  Dipakai di layar Pembayaran Berhasil (bagian atas). Koordinat desain 100x110 diskalakan ke ukuran layar lewat fungsi p(), u(), sz().
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.Canvas

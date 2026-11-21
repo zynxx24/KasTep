@@ -7,6 +7,8 @@
 // ==========================================================================
 package com.kastep.app.ui.navigation
 
+// Daftar semua halaman (rute) aplikasi. Setiap object = satu halaman: Splash, Login, Register, Dashboard, Profile, DataSiswa,
+// RiwayatPembayaran, Pembayaran, MataPelajaran, PengeluaranKas, LaporanKas, PembayaranBerhasil. 12 halaman.
 // CARI-NAVIGASI | Tambah halaman baru: object NamaHalaman : Screen("nama_rute").
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")

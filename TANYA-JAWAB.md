@@ -12,124 +12,190 @@ Letak: `app/build.gradle.kts:14`
 
 `MainActivity.onCreate` memasang tema lalu `KastepApp` (drawer + NavGraph). Splash 2,5 detik lalu ke Login atau Dashboard.
 
-Letak: `app/src/main/java/com/kastep/app/MainActivity.kt:70`
+Letak: `app/src/main/java/com/kastep/app/MainActivity.kt:78`
 
 ### 3. Bagaimana validasi login?
 
 Email harus ada @ dan titik, password minimal 5 karakter, lalu dicocokkan dengan akun terdaftar.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:129`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:164`
 
 ### 4. Akun admin dan user bedanya?
 
 Register selalu membuat USER. Admin bawaan untuk bendahara. Tombol tambah, ubah, hapus hanya muncul untuk ADMIN.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:149`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:185`
 
 ### 5. Data disimpan di mana?
 
 File kastep_prefs di HP (SharedPreferences, JSON). Kalau rusak, data awal buku kas dimuat lagi.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:737`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:805`
 
 ### 6. Rumus saldo?
 
 Total semua pembayaran (kas + donasi) - total pengeluaran = Rp1.389.000.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:36`
+Letak: `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:49`
 
 ### 7. Rumus denda?
 
 Rp5.000 x n, n = bulan sekarang - bulan tagihan, hanya bulan yang belum LUNAS. Bulan berjalan belum didenda.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:274`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:322`
 
 ### 8. Tagihan satu bulan dihitung bagaimana?
 
 Jumlah Senin bulan itu x Rp5.000. Kekurangan = (Senin - minggu lunas - minggu dispensasi) x Rp5.000.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:255`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:299`
 
 ### 9. Jumlah Senin dihitung dari mana?
 
 Fungsi `jumlahMinggu` menghitung hari Senin di kalender bulan itu (4 atau 5).
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:82`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:110`
 
 ### 10. Apa yang terjadi saat Bayar Sekarang ditekan?
 
 Total = sisa + denda disimpan ke riwayat, bulan itu jadi LUNAS, lalu muncul halaman Pembayaran Berhasil.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:286`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:342`
 
 ### 11. Kenapa bulan yang lunas tidak bisa dipilih?
 
 Dicek `isLunas` di dialog pembayaran supaya tidak bayar dua kali.
 
-Letak: `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:212`
+Letak: `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:232`
 
 ### 12. Dispensasi BI/PKL di mana?
 
 Peta minggu dispensasi per siswa per bulan di data awal. Minggu itu dihitung lunas tanpa menambah pemasukan.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:432`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:498`
 
 ### 13. Kalau nominal kas atau denda mau diubah?
 
 Konstanta KAS_MINGGUAN dan DENDA_PER_BULAN di companion object.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:55`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:80`
 
 ### 14. Bagaimana konfirmasi WhatsApp bekerja?
 
 Membuka wa.me dengan pesan berisi nama, bulan, metode, kas, denda, total.
 
-Letak: `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:364`
+Letak: `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:386`
 
 ### 15. Nomor rekening dan QRIS di mana?
 
 Daftar nomor per metode dan gambar QRIS di PembayaranScreen.
 
-Letak: `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:126`
+Letak: `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:138`
 
 ### 16. Validasi pengeluaran?
 
 Nominal harus lebih dari 0, keterangan wajib, tanggal harus ada di kalender (31/02 ditolak).
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:315`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:372`
 
 ### 17. Laporan dan grafik dari mana?
 
 Laporan per periode dan grafik batang 6 bulan, tombol Bagikan memakai `generateReportText` (tanpa nama).
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:368`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:430`
 
 ### 18. Kenapa user tidak melihat status teman?
 
 Di Data Siswa, USER hanya melihat baris namanya sendiri. Nama yang belum lunas di Laporan hanya untuk Admin.
 
-Letak: `app/src/main/java/com/kastep/app/ui/screens/DataSiswaScreen.kt:126`
+Letak: `app/src/main/java/com/kastep/app/ui/screens/DataSiswaScreen.kt:135`
 
 ### 19. Apa itu ViewModel di sini?
 
 `KastepViewModel` jembatan layar dan repository, menyimpan StateFlow supaya layar ikut berubah otomatis (pola MVVM).
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:17`
+Letak: `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:25`
 
 ### 20. Menu dan perpindahan halaman diatur di mana?
 
 Isi menu samping di MainActivity, rute halaman di NavGraph.
 
-Letak: `app/src/main/java/com/kastep/app/ui/navigation/NavGraph.kt:32`
+Letak: `app/src/main/java/com/kastep/app/ui/navigation/NavGraph.kt:38`
 
 ### 21. Tabel ERD ada di kode mana?
 
 Data class di KastepModels.kt: UserProfile, Siswa, PaymentRecord, Pengeluaran, MataPelajaran.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepModels.kt:35`
+Letak: `app/src/main/java/com/kastep/app/data/KastepModels.kt:47`
 
 ### 22. Apa kekurangan aplikasi?
 
 Status langsung LUNAS tanpa verifikasi admin, belum ada koreksi pembayaran, belum ada batas denda, data belum online. Lihat SRS 5.2.
 
-Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:286`
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:342`
+
+### 23. Grafiknya di mana dan jenis grafik apa?
+
+Satu grafik di layar Laporan Kas: grafik batang berpasangan (biru pemasukan, abu pengeluaran) per bulan, fungsi `IncomeExpenseChart`. Digambar manual pakai Canvas, tanpa library. Dashboard tidak punya grafik.
+
+Letak: `app/src/main/java/com/kastep/app/ui/screens/LaporanKasScreen.kt:353`
+
+### 24. Grafik menampilkan bulan apa saja?
+
+Enam bulan terakhir yang punya pembayaran atau pengeluaran (`bulanGrafik`: distinct, urut, takeLast 6).
+
+Letak: `app/src/main/java/com/kastep/app/ui/screens/LaporanKasScreen.kt:207`
+
+### 25. Apakah pilihan Periode mengubah grafik?
+
+Tidak. Periode hanya mengubah dua kartu angka dan kartu saldo atau selisih. Grafik selalu 6 bulan terakhir.
+
+Letak: `app/src/main/java/com/kastep/app/ui/screens/LaporanKasScreen.kt:80`
+
+### 26. Bagaimana grafik batang dihitung?
+
+Tinggi batang = tinggi area x nilai / nilai terbesar. Ada 5 garis bantu berlabel ribuan (mis. 20rb).
+
+Letak: `app/src/main/java/com/kastep/app/ui/screens/LaporanKasScreen.kt:375`
+
+### 27. Menu aplikasi pakai apa, tab bawah?
+
+Menu samping (ModalNavigationDrawer) berisi 7 menu, bukan tab bawah. Isinya di `drawerItems`.
+
+Letak: `app/src/main/java/com/kastep/app/MainActivity.kt:128`
+
+### 28. Dashboard isinya apa?
+
+Tiga kartu (saldo, pemasukan, pengeluaran), garis progres pengeluaran per pemasukan, dan 10 transaksi terbaru gabungan.
+
+Letak: `app/src/main/java/com/kastep/app/ui/screens/DashboardScreen.kt:58`
+
+### 29. Alur membayar kas bagaimana?
+
+Pilih metode, tekan PEMBAYARAN, pilih siswa dan bulan, total otomatis (sisa kas + denda), konfirmasi, layar Berhasil, tombol Konfirmasi WA.
+
+Letak: `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:218`
+
+### 30. Nomor rekening di layar Pembayaran asli?
+
+Masih nomor contoh (variabel accNo). Harus diganti dengan rekening kelas yang sebenarnya sebelum dipakai.
+
+Letak: `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:139`
+
+### 31. Kenapa bisa bayar dua kali?
+
+Tidak bisa. Bulan yang sudah LUNAS tidak bisa dipilih (`sudahLunas`) dan processPayment menolaknya.
+
+Letak: `app/src/main/java/com/kastep/app/data/KastepRepository.kt:348`
+
+### 32. Bagaimana halaman berpindah?
+
+NavGraph.kt: setiap composable(Screen.X.route) satu halaman. Daftar rute di Screen.kt.
+
+Letak: `app/src/main/java/com/kastep/app/ui/navigation/NavGraph.kt:40`
+
+### 33. Jadwal pelajaran dari mana?
+
+Data tetap di MataPelajaranScreen.kt (ScheduleEntry), tidak terhubung dengan kas.
+
+Letak: `app/src/main/java/com/kastep/app/ui/screens/MataPelajaranScreen.kt:90`

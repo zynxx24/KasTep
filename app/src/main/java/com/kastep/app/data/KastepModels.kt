@@ -5,8 +5,16 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU
+//  File ini hanya "cetakan data" (tanpa tampilan, tanpa hitungan). Seperti kolom di buku kas:
+//    UserProfile   = akun yang login (nama, email, password, peran ADMIN atau USER)
+//    Siswa         = 1 siswa dengan minggu yang sudah dibayar dan minggu dispensasi per bulan
+//    PaymentRecord = 1 baris riwayat pembayaran (siapa, berapa, bulan apa, metode, denda)
+//    Pengeluaran   = 1 pengeluaran kas
+//    MataPelajaran = nama mapel untuk layar jadwal
 package com.kastep.app.data
 
+// Dua peran. ADMIN = bendahara (bisa kelola siswa dan pengeluaran, melihat semua status). USER = siswa biasa (hanya status miliknya).
 enum class UserRole {
     ADMIN, USER
 }
@@ -26,6 +34,10 @@ enum class StatusBayar {
     LUNAS, BELUM
 }
 
+// Satu siswa. Status bayar disimpan PER BULAN, bukan per transaksi:
+//   bayar["Agustus 2026"] = 5   artinya 5 Senin di bulan Agustus sudah dibayar
+//   dispensasi["Juli 2026"] = 4 artinya 4 Senin di Juli dibebaskan (BI/PKL), dihitung sudah lunas tetapi tidak menambah pemasukan
+// Bulan LUNAS bila minggu dibayar + minggu dispensasi >= jumlah Senin bulan itu (lihat statusBulan di repository).
 // CARI-ANGGOTA CARI-DISPENSASI | bayar = minggu lunas per bulan; dispensasi = minggu yang dibebaskan (BI/PKL).
 /**
  * Kas dibayar Rp5.000 per minggu (setiap Senin). [bayar] menyimpan jumlah minggu yang sudah
@@ -42,6 +54,7 @@ data class Siswa(
     val noHp: String = ""
 )
 
+// Satu baris Riwayat Pembayaran. jumlah = kas + denda yang dibayar saat itu, denda = bagian denda di dalam jumlah (untuk ditampilkan terpisah).
 // CARI-PEMBAYARAN | Satu baris riwayat pembayaran; kolom denda menyimpan denda yang ikut dibayar.
 data class PaymentRecord(
     val no: Int,

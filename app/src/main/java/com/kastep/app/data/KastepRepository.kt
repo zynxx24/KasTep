@@ -5,6 +5,26 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU : INI "OTAK" KASTEP
+//  Semua data dan rumus ada di file ini. Layar hanya menampilkan hasilnya.
+//  Urutan isi file:
+//    1. Daftar data hidup : _students, _paymentRecords, _pengeluaranList, _userProfile, _isLoggedIn
+//    2. Konstanta         : KAS_MINGGUAN 5.000, DENDA_PER_BULAN 5.000, DATA_KEY, akun admin bawaan
+//    3. Fungsi bantu      : parseBulan, jumlahMinggu (hitung Senin sebulan), bulanDariTanggal, kunciTanggal
+//    4. AUTH              : login, register, updateProfile, logout
+//    5. Kelola siswa      : addStudent, updateStudent, deleteStudent
+//    6. STATUS KAS        : getBulanKas, mingguLunas, statusBulan, sisaKas
+//    7. DENDA             : bulanTerlambat, calculateDenda, totalDenda
+//    8. processPayment    : mencatat pembayaran satu bulan
+//    9. Pengeluaran       : addPengeluaran, updatePengeluaran, deletePengeluaran
+//   10. Reset dan laporan : resetData, generateReportText
+//   11. Data awal         : loadInitialData (33 siswa, riwayat, pengeluaran asli buku kas)
+//   12. Penyimpanan HP    : saveToPrefs dan loadFromPrefs (JSON di SharedPreferences "kastep_prefs")
+//  JAWABAN CEPAT:
+//   - Tagihan satu bulan = jumlah Senin di bulan itu x Rp5.000 (4 atau 5 minggu).
+//   - Denda = Rp5.000 x jumlah bulan terlambat, hanya untuk bulan yang belum LUNAS. Bulan berjalan belum didenda.
+//   - Saldo = total pembayaran - total pengeluaran = Rp1.389.000.
+//   - Data disimpan di HP (JSON), belum ada server atau Firebase. Password disimpan apa adanya (belum di-hash).
 package com.kastep.app.data
 
 import android.content.Context
@@ -19,11 +39,14 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+// Satu-satunya tempat yang boleh mengubah data. context dipakai untuk SharedPreferences (penyimpanan lokal HP).
 // CARI-PUSAT-DATA | Semua perubahan data lewat sini; layar membaca lewat KastepViewModel.
 class KastepRepository(context: Context? = null) {
 
     private val prefs: SharedPreferences? = context?.getSharedPreferences("kastep_prefs", Context.MODE_PRIVATE)
 
+    // Daftar data "hidup" (MutableStateFlow). Awalan _ = versi yang bisa diubah (private), tanpa _ = versi baca-saja untuk ViewModel.
+    // Begitu isinya berubah, semua layar yang membacanya digambar ulang otomatis.
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
@@ -39,6 +62,7 @@ class KastepRepository(context: Context? = null) {
     private val _pengeluaranList = MutableStateFlow<List<Pengeluaran>>(emptyList())
     val pengeluaranList: StateFlow<List<Pengeluaran>> = _pengeluaranList.asStateFlow()
 
+    // Daftar nama mapel untuk layar Mata Pelajaran. Jadwal lengkapnya ditulis tetap di MataPelajaranScreen.kt.
     val mataPelajaran = listOf(
         MataPelajaran("BAHASA INGGRIS"), MataPelajaran("PDL RPL"),
         MataPelajaran("BAHASA INDONESIA"), MataPelajaran("PABP HINDU"),
@@ -47,6 +71,7 @@ class KastepRepository(context: Context? = null) {
         MataPelajaran("KIK"), MataPelajaran("MAT")
     )
 
+    // Akun terdaftar: email -> profil lengkap (termasuk password). Akun bendahara bawaan: admin@gmail.com / admin123.
     // Akun terdaftar: email -> profil lengkap (termasuk password)
     private val _registeredUsers = mutableMapOf<String, UserProfile>()
 
@@ -68,6 +93,7 @@ class KastepRepository(context: Context? = null) {
             role = UserRole.ADMIN, kelas = "XII PPLG"
         )
 
+        // Mengubah "Agustus 2026" jadi pasangan (2026, 8) supaya bulan bisa dibandingkan dan dihitung selisihnya.
         /** "Agustus 2026" -> (2026, 8) */
         fun parseBulan(label: String): Pair<Int, Int>? {
             val parts = label.trim().split(" ")
@@ -77,6 +103,8 @@ class KastepRepository(context: Context? = null) {
             return if (m > 0) y to m else null
         }
 
+        // Menghitung jumlah hari SENIN dalam satu bulan (4 atau 5). Contoh "Agustus 2026" = 5.
+        // Penting: tagihan bulan itu = jumlah Senin x Rp5.000. Loop semua tanggal bulan itu dan hitung yang harinya Senin.
         // CARI-NOMINAL-KAS | Menghitung jumlah hari Senin dalam sebulan (4 atau 5) = jumlah minggu kas.
         /** Jumlah hari Senin (hari kas) dalam satu bulan. */
         fun jumlahMinggu(bulan: String): Int {
@@ -86,6 +114,7 @@ class KastepRepository(context: Context? = null) {
             return (1..days).count { d -> cal.set(Calendar.DAY_OF_MONTH, d); cal.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY }
         }
 
+        // Mengambil bulan dari tanggal teks ("15 Juli 2026" atau "15/07/2026"). Dipakai grafik dan filter periode untuk mengelompokkan pengeluaran.
         /** Tanggal "15 Juli 2026" atau "15/07/2026" -> (2026, 7) */
         fun bulanDariTanggal(tanggal: String): Pair<Int, Int>? {
             val t = tanggal.trim()
@@ -94,6 +123,7 @@ class KastepRepository(context: Context? = null) {
             return if (parts.size == 3) parseBulan("${parts[1]} ${parts[2]}") else null
         }
 
+        // Mengubah tanggal teks jadi angka yyyyMMdd supaya transaksi bisa diurutkan dari yang terbaru (tanggal disimpan sebagai teks).
         /** Kunci urut tanggal (yyyyMMdd) untuk mengurutkan transaksi terbaru. */
         fun kunciTanggal(tanggal: String): Int {
             val t = tanggal.trim()
@@ -112,6 +142,8 @@ class KastepRepository(context: Context? = null) {
         loadData()
     }
 
+    // Urutan saat aplikasi dibuka: bila di HP sudah ada data tersimpan (DATA_KEY) -> loadFromPrefs. Bila belum (install pertama) ->
+    // loadInitialData (buku kas asli) lalu simpan.
     // Saat aplikasi dibuka: muat data tersimpan, atau pakai data awal buku kas bila belum ada.
     private fun loadData() {
         if (prefs != null && prefs.contains(DATA_KEY)) {
@@ -124,6 +156,9 @@ class KastepRepository(context: Context? = null) {
 
     // ==================== AUTH ====================
 
+    // LOGIN. Hasil: null = berhasil, teks = pesan error yang ditampilkan di layar Login. Pemeriksaan berurutan:
+    //   email kosong -> password kosong -> format email (harus ada @ dan titik) -> password minimal 5 karakter ->
+    //   akun harus terdaftar -> password harus cocok. Bila lolos semua, profil diisi dan status login true.
     // CARI-LOGIN CARI-VALIDASI | Cek format email, panjang password (min. 5), lalu cocokkan dengan akun terdaftar.
     // TANYA-GURU: Validasi login? Email harus ada @ dan titik, password minimal 5 karakter, lalu dicocokkan dengan akun terdaftar.
     fun login(email: String, password: String): String? {
@@ -145,6 +180,7 @@ class KastepRepository(context: Context? = null) {
         return null
     }
 
+    // DAFTAR. Validasi: nama minimal 3 huruf, email valid, password minimal 5, email belum terdaftar. Akun baru selalu USER (bukan ADMIN).
     // CARI-REGISTER CARI-VALIDASI | Akun baru selalu ber-role USER; email tidak boleh dobel.
     fun register(nama: String, email: String, nis: String, kelas: String, noHp: String, password: String): String? {
         val trimNama = nama.trim()
@@ -171,6 +207,7 @@ class KastepRepository(context: Context? = null) {
         return null
     }
 
+    // Ubah nama dan No. HP akun yang login (nama minimal 3 huruf). Perubahan juga ditulis ke daftar akun terdaftar.
     // CARI-PROFIL | Simpan perubahan nama & No. HP dari dialog Edit Akun.
     fun updateProfile(nama: String, noHp: String): String? {
         val trimNama = nama.trim()
@@ -191,6 +228,7 @@ class KastepRepository(context: Context? = null) {
 
     // ==================== STUDENT CRUD ====================
 
+    // Tambah siswa (hanya lewat layar Data Siswa akun ADMIN). Nama dijadikan HURUF BESAR dan tidak boleh kembar. Nomor urut = nomor terbesar + 1.
     // CARI-ANGGOTA CARI-VALIDASI | Tambah siswa; nama disimpan huruf besar dan tidak boleh sama dengan siswa lain.
     fun addStudent(nama: String, peran: String): String? {
         val clean = nama.trim().uppercase()
@@ -202,6 +240,7 @@ class KastepRepository(context: Context? = null) {
         return null
     }
 
+    // Ubah nama atau peran siswa. Riwayat pembayaran ikut memakai nama baru supaya tetap terhubung ke siswa itu.
     // CARI-ANGGOTA | Ganti nama/peran; riwayat pembayaran ikut memakai nama baru.
     fun updateStudent(no: Int, nama: String, peran: String): String? {
         val clean = nama.trim().uppercase()
@@ -219,6 +258,7 @@ class KastepRepository(context: Context? = null) {
         return null
     }
 
+    // Hapus siswa lalu nomor urut dibuat ulang 1,2,3. Riwayat pembayaran lama TIDAK dihapus (uangnya tetap tercatat di saldo).
     // Menghapus siswa lalu menomori ulang daftar. Riwayat pembayaran lamanya tetap ada.
     fun deleteStudent(no: Int) {
         _students.value = _students.value.filter { it.no != no }
@@ -228,6 +268,7 @@ class KastepRepository(context: Context? = null) {
 
     // ==================== BULAN & STATUS KAS ====================
 
+    // Daftar bulan tagihan: Juli 2026 sampai bulan sekarang (bertambah otomatis tiap bulan). Dipakai kolom bulan di Data Siswa, filter periode, dan dialog bayar.
     // CARI-PEMBAYARAN | Daftar bulan yang ditagih: Juli 2026 sampai bulan berjalan (otomatis bertambah).
     /** Bulan kas semester ganjil: Juli 2026 sampai bulan berjalan. */
     fun getBulanKas(): List<String> {
@@ -242,19 +283,24 @@ class KastepRepository(context: Context? = null) {
         return result
     }
 
+    // Jumlah minggu yang dianggap lunas pada satu bulan = minggu dibayar + minggu dispensasi, dibatasi maksimal jumlah Senin bulan itu.
     // Jumlah minggu lunas satu bulan = minggu dibayar + minggu dispensasi (maksimal jumlah Senin).
     fun mingguLunas(siswa: Siswa, bulan: String): Int =
         ((siswa.bayar[bulan] ?: 0) + (siswa.dispensasi[bulan] ?: 0)).coerceAtMost(jumlahMinggu(bulan))
 
+    // LUNAS atau BELUM untuk satu siswa di satu bulan. LUNAS bila mingguLunas >= jumlah Senin bulan itu.
     // CARI-PEMBAYARAN CARI-DISPENSASI | LUNAS bila minggu dibayar + minggu dispensasi >= jumlah Senin bulan itu.
     fun statusBulan(siswa: Siswa, bulan: String): StatusBayar =
         if (mingguLunas(siswa, bulan) >= jumlahMinggu(bulan)) StatusBayar.LUNAS else StatusBayar.BELUM
 
+    // Kekurangan kas satu bulan dalam rupiah = (jumlah Senin - minggu lunas) x Rp5.000. Contoh Agustus (5 Senin), baru 2 minggu: 3 x 5.000 = Rp15.000.
     // CARI-PEMBAYARAN | Kekurangan kas satu bulan = minggu belum lunas x Rp5.000.
     /** Sisa kas yang belum dibayar untuk satu bulan. */
     fun sisaKas(siswa: Siswa, bulan: String): Long =
         (jumlahMinggu(bulan) - mingguLunas(siswa, bulan)).coerceAtLeast(0) * KAS_MINGGUAN
 
+    // n di rumus denda = berapa bulan tagihan itu sudah lewat dari bulan sekarang. Bulan berjalan n = 0 (belum didenda).
+    // Contoh bulan ini November: tagihan Oktober n=1, Juli n=4.
     // Berapa bulan sebuah tagihan sudah lewat dari bulan sekarang (n di rumus denda).
     private fun bulanTerlambat(bulan: String): Int {
         val (y, m) = parseBulan(bulan) ?: return 0
@@ -263,6 +309,8 @@ class KastepRepository(context: Context? = null) {
         return (now - (y * 12 + m)).coerceAtLeast(0)
     }
 
+    // RUMUS DENDA satu siswa untuk satu bulan: bila bulan itu sudah LUNAS -> 0. Bila belum -> bulan terlambat x Rp5.000 (flat).
+    // Contoh November: Juli belum lunas = 4 x 5.000 = Rp20.000. Tidak berlipat dan tidak naik per hari.
     // CARI-DENDA | Rumus: Rp5.000 x jumlah bulan terlambat, hanya untuk bulan yang belum lunas.
     //   Contoh: kas Juli belum lunas, sekarang November -> 4 x 5.000 = Rp20.000.
     /**
@@ -277,9 +325,17 @@ class KastepRepository(context: Context? = null) {
         return bulanTerlambat(bulan) * DENDA_PER_BULAN
     }
 
+    // Total denda satu siswa = jumlahkan denda semua bulan tagihan (Juli sampai sekarang) yang belum lunas.
     // Total denda satu siswa = jumlah denda semua bulan yang belum lunas.
     fun totalDenda(siswa: Siswa): Long = getBulanKas().sumOf { calculateDenda(siswa.nama, it) }
 
+    // MENCATAT PEMBAYARAN satu bulan untuk satu siswa. Langkahnya:
+    //   1. validasi: siswa dipilih, bulan dipilih, siswa ada, bulan itu belum LUNAS (tidak bisa bayar dua kali)
+    //   2. hitung denda dan sisa kas bulan itu
+    //   3. buat PaymentRecord dengan jumlah = sisa kas + denda, taruh paling atas riwayat
+    //   4. tandai bulan itu LUNAS: minggu dibayar diisi penuh (jumlah Senin dikurangi minggu dispensasi)
+    //   5. simpan ke HP. Saldo otomatis naik karena dihitung dari semua riwayat.
+    // Hasil null = berhasil, teks = pesan error. Catatan: status langsung LUNAS tanpa verifikasi admin (batasan versi sekarang).
     // CARI-PEMBAYARAN CARI-DENDA | Mencatat pembayaran: jumlah = sisa kas + denda, lalu bulan itu menjadi LUNAS.
     // TANYA-GURU: Apa yang terjadi saat Bayar Sekarang? Total = sisa minggu x Rp5.000 + denda, disimpan ke riwayat,
     // lalu bulan itu menjadi LUNAS. Bendahara tetap mengecek uangnya secara manual (verifikasi admin masih rencana).
@@ -311,6 +367,7 @@ class KastepRepository(context: Context? = null) {
 
     // ==================== PENGELUARAN ====================
 
+    // Tambah pengeluaran. Validasi: jumlah > 0 dan keterangan tidak kosong. Tanggal kosong otomatis diisi hari ini. Saldo turun otomatis.
     // CARI-PENGELUARAN CARI-VALIDASI | Tambah pengeluaran; nominal > 0 dan keterangan wajib.
     fun addPengeluaran(tanggal: String, jumlah: Long, keterangan: String): String? {
         if (jumlah <= 0) return "Jumlah harus lebih dari 0"
@@ -324,6 +381,7 @@ class KastepRepository(context: Context? = null) {
         return null
     }
 
+    // Ubah pengeluaran. Selain jumlah dan keterangan, tanggal harus terbaca (contoh 15 Juli 2026).
     // CARI-PENGELUARAN CARI-VALIDASI | Edit pengeluaran; tanggal harus terbaca (contoh 15 Juli 2026).
     fun updatePengeluaran(id: String, tanggal: String, jumlah: Long, keterangan: String): String? {
         if (jumlah <= 0) return "Jumlah harus lebih dari 0"
@@ -336,6 +394,7 @@ class KastepRepository(context: Context? = null) {
         return null
     }
 
+    // Hapus pengeluaran. Saldo otomatis naik lagi.
     // Menghapus pengeluaran (khusus Admin), saldo otomatis bertambah lagi.
     fun deletePengeluaran(id: String) {
         _pengeluaranList.value = _pengeluaranList.value.filter { it.id != id }
@@ -344,6 +403,7 @@ class KastepRepository(context: Context? = null) {
 
     // ==================== RESET / REPORT ====================
 
+    // Mengembalikan semua data ke buku kas awal, sesi login tetap dipertahankan. (Belum ada tombolnya di layar manapun.)
     // CARI-DATA-AWAL | Mengembalikan semua data ke buku kas awal (sesi admin tetap).
     fun resetData() {
         // Sesi admin tetap, data lain kembali ke buku kas awal
@@ -364,6 +424,8 @@ class KastepRepository(context: Context? = null) {
         return sdf.format(Date())
     }
 
+    // Teks laporan untuk tombol "Bagikan Laporan": pemasukan, pengeluaran, saldo, total denda, jumlah siswa, dan rekap lunas/belum tiap bulan.
+    // Tidak memuat nama siswa, jadi aman dibagikan ke grup.
     // CARI-LAPORAN CARI-SALDO | Teks laporan ringkas untuk tombol Bagikan Laporan (saldo = pemasukan - pengeluaran).
     fun generateReportText(): String {
         val totalIncome = _paymentRecords.value.sumOf { it.jumlah }
@@ -390,6 +452,10 @@ class KastepRepository(context: Context? = null) {
         """.trimIndent() + "\n" + rekapBulan + "\n------------------------------------\nDibuat otomatis oleh KASTEP."
     }
 
+    // DATA AWAL = buku kas asli XII PPLG per 20 November 2026.
+    //   bayarAwal      : 33 siswa dengan 4 angka = minggu dibayar bulan Juli, Agustus, September, Oktober
+    //   dispensasiAwal : siswa yang BI/PKL (satu siswa), minggunya dihitung lunas
+    //   lalu riwayat pembayaran dan pengeluaran asli diisi. Hasil: pemasukan, pengeluaran, dan saldo Rp1.389.000.
     // Data awal sesuai buku kas XII PPLG per 20 November 2026 (Rp5.000/minggu, Juni libur)
     // CARI-DATA-AWAL | Data awal dari buku kas asli XII PPLG per 20 November 2026: siswa, minggu terbayar, riwayat, pengeluaran.
     private fun loadInitialData() {
@@ -732,6 +798,8 @@ class KastepRepository(context: Context? = null) {
     private fun mapFromJson(o: JSONObject?): Map<String, Int> =
         o?.keys()?.asSequence()?.associateWith { o.optInt(it) } ?: emptyMap()
 
+    // MENYIMPAN KE HP: siswa, riwayat pembayaran, pengeluaran, akun terdaftar, dan profil dibuat jadi JSON lalu ditulis ke SharedPreferences "kastep_prefs".
+    // Dipanggil setiap ada perubahan data sehingga tidak hilang saat aplikasi ditutup.
     // CARI-SIMPAN-DATA | Menyimpan semua data ke HP (JSON di SharedPreferences).
     // TANYA-GURU: Data disimpan di mana? File kastep_prefs di HP (SharedPreferences, JSON). Belum tersinkron antar HP.
     private fun saveToPrefs() {
@@ -772,6 +840,7 @@ class KastepRepository(context: Context? = null) {
         }
     }
 
+    // MEMBACA KEMBALI dari HP saat aplikasi dibuka (JSON diubah jadi objek). Bila data rusak, dipakai data awal agar tidak crash.
     // CARI-SIMPAN-DATA | Memuat data tersimpan; bila rusak kembali ke data awal.
     private fun loadFromPrefs() {
         if (prefs == null) return

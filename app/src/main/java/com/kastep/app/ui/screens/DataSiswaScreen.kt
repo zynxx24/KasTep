@@ -5,6 +5,12 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU : LAYAR "DATA SISWA"
+//  Tabel 33 siswa: No, Nama, Peran, satu kolom per bulan (Juli sampai bulan sekarang), dan kolom Denda. Bisa digeser mendatar dan dicari.
+//  Simbol di kolom bulan:  ✓ lunas  |  angka "2/5" = baru 2 dari 5 Senin  |  D = dispensasi (BI/PKL)  |  ✗ belum  |  · = disembunyikan.
+//  ADMIN: melihat semua baris, menekan baris untuk edit atau hapus, ada tombol tambah siswa.
+//  USER : mode lihat saja. Status dan denda HANYA terlihat di baris namanya sendiri, baris teman tampil "·" (privasi, supaya tunggakan tidak mempermalukan).
+//  Aturan privasi ada di variabel bolehLihat di dalam daftar.
 package com.kastep.app.ui.screens
 
 import androidx.compose.foundation.Canvas
@@ -38,6 +44,7 @@ import com.kastep.app.data.StatusBayar
 import com.kastep.app.data.UserRole
 import com.kastep.app.ui.theme.*
 
+// State: students (daftar), isAdmin, query (kata cari), showAddDialog / showEditDialog / showDeleteConfirm, selectedStudent (baris yang sedang diedit), dialogError (pesan bila nama kembar).
 // CARI-ANGGOTA CARI-DENDA | Kolom bulan: ✓ lunas, angka = minggu terbayar, D = dispensasi, ✗ belum. Kolom terakhir = total denda.
 @Composable
 fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
@@ -121,6 +128,8 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
                 }
                 shown.forEach { siswa ->
                     val denda = viewModel.totalDenda(siswa)
+                    // bolehLihat = true bila akun ADMIN, atau bila baris ini milik akun yang login (nama siswa sama dengan nama akun, keduanya huruf besar).
+                    // Bila false, kolom bulan diganti "·" dan kolom denda dikosongkan.
                     // Privasi: status dan denda siswa lain hanya terlihat oleh ADMIN (sasaran "tunggakan tidak mempermalukan")
                     // TANYA-GURU: Kenapa siswa lain tampil titik? Akun USER hanya melihat status dan dendanya sendiri supaya tidak dipermalukan.
                     val bolehLihat = isAdmin || siswa.nama == userProfile.nama.trim().uppercase()
@@ -291,6 +300,7 @@ private fun StudentDialog(
     )
 }
 
+// Bar atas yang dipakai hampir semua layar: tombol menu samping (kiri), tanggal hari ini (tengah), nama akun dan ikon profil (kanan, menuju Profil).
 // Shared top bar
 // CARI-NAVIGASI | Bar atas yang dipakai banyak halaman: tombol menu, tanggal, dan tombol profil.
 @Composable

@@ -5,6 +5,12 @@
 // Cara cari: VS Code Ctrl+Shift+F (Android Studio Ctrl+Shift+F) lalu ketik
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
+//  BACA INI DULU
+//  ViewModel = perantara antara layar dan data. Layar tidak menyentuh data langsung:
+//     Layar (Dashboard dll)  ->  KastepViewModel (file ini)  ->  KastepRepository (data + rumus)
+//  Isi file: daftar data "hidup" (StateFlow, layar ikut berubah otomatis saat data berubah), tiga angka ringkas
+//  (totalIncome, totalExpense, saldo), dan fungsi tipis yang hanya meneruskan ke repository.
+//  Kalau ditanya "rumus saldo di mana?": val saldo di file ini = total pemasukan dikurangi total pengeluaran.
 package com.kastep.app.data
 
 import android.app.Application
@@ -13,6 +19,8 @@ import kotlinx.coroutines.flow.StateFlow
 import java.text.NumberFormat
 import java.util.Locale
 
+// AndroidViewModel membawa Application (konteks aplikasi) supaya repository bisa menyimpan data ke HP.
+// Repository dibuat di sini sekali, lalu semua layar memakai ViewModel yang sama (dibagikan lewat MainActivity dan NavGraph).
 // CARI-PUSAT-DATA | Layar memanggil fungsi di sini; isi logikanya ada di KastepRepository.
 class KastepViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -25,6 +33,11 @@ class KastepViewModel(application: Application) : AndroidViewModel(application) 
     val pengeluaranList: StateFlow<List<Pengeluaran>> = repository.pengeluaranList
     val mataPelajaran: List<MataPelajaran> = repository.mataPelajaran
 
+    // Tiga angka utama Dashboard dan Laporan:
+    //   totalIncome  = jumlahkan semua pembayaran di riwayat (kas + denda yang pernah dibayar)
+    //   totalExpense = jumlahkan semua pengeluaran
+    //   saldo        = totalIncome - totalExpense   (data awal Rp1.389.000)
+    // Memakai get() sehingga selalu dihitung dari data terbaru.
     val totalIncome: Long
         get() = paymentRecords.value.sumOf { it.jumlah }
 
@@ -94,6 +107,7 @@ class KastepViewModel(application: Application) : AndroidViewModel(application) 
     fun getCurrentDateString(): String = repository.getCurrentDateString()
 
     companion object {
+        // Mengubah 1389000 jadi "1.389.000" (pemisah ribuan titik gaya Indonesia). Layar menambahkan "Rp" sendiri.
         // CARI-FORMAT-RUPIAH | Mengubah 1389000 menjadi "1.389.000".
         fun formatRupiah(amount: Long): String {
             val formatter = NumberFormat.getInstance(Locale("id", "ID"))
