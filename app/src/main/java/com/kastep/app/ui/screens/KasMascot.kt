@@ -34,12 +34,16 @@ private val SuitMid = Color(0xFF2E7D32)
 private val SuitLight = Color(0xFF66BB6A)
 private val Glove = Color(0xFFFAFAFA)
 
+// Menggambar maskot KASTEP dengan Canvas (bukan file gambar).
 private fun DrawScope.drawKasMascot() {
     val s = min(size.width / 100f, size.height / 110f)
     val ox = (size.width - 100f * s) / 2f
     val oy = (size.height - 110f * s) / 2f
+    // Ubah koordinat desain 100x110 ke ukuran layar.
     fun p(x: Float, y: Float) = Offset(ox + x * s, oy + y * s)
+    // Skala satu ukuran panjang.
     fun u(v: Float) = v * s
+    // Skala ukuran lebar dan tinggi.
     fun sz(w: Float, h: Float) = Size(w * s, h * s)
     val line = u(0.9f)
 

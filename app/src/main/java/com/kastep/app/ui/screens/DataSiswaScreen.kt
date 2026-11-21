@@ -93,7 +93,7 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
             color = KastepWhite, fontSize = 15.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 20.dp)
         )
         Text(
-            (if (isAdmin) "Tap baris siswa untuk edit/hapus. " else "Mode lihat saja. ") + "✓ lunas · angka = minggu terbayar · D = dispensasi",
+            (if (isAdmin) "Tap baris siswa untuk edit/hapus. " else "Mode lihat saja. Status dan denda hanya tampil di baris kamu sendiri. ") + "✓ lunas · angka = minggu terbayar · D = dispensasi",
             color = KastepGray, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 20.dp)
         )
 
@@ -121,6 +121,9 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
                 }
                 shown.forEach { siswa ->
                     val denda = viewModel.totalDenda(siswa)
+                    // Privasi: status dan denda siswa lain hanya terlihat oleh ADMIN (sasaran "tunggakan tidak mempermalukan")
+                    // TANYA-GURU: Kenapa siswa lain tampil titik? Akun USER hanya melihat status dan dendanya sendiri supaya tidak dipermalukan.
+                    val bolehLihat = isAdmin || siswa.nama == userProfile.nama.trim().uppercase()
                     Row(
                         modifier = Modifier.fillMaxWidth().horizontalScroll(hScroll)
                             .then(if (isAdmin) Modifier.clickable {
@@ -139,12 +142,14 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
                             val minggu = viewModel.mingguLunas(siswa, b)
                             Text(
                                 text = when {
+                                    !bolehLihat -> "·"
                                     lunas && dispensasi -> "D"
                                     lunas -> "✓"
                                     minggu > 0 -> "$minggu/${viewModel.jumlahMinggu(b)}"
                                     else -> "✗"
                                 },
                                 color = when {
+                                    !bolehLihat -> KastepGray
                                     lunas && dispensasi -> KastepCyan
                                     lunas -> KastepGreen
                                     minggu > 0 -> Color(0xFFFFC107)
@@ -155,7 +160,7 @@ fun DataSiswaScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavi
                             )
                         }
                         Text(
-                            if (denda > 0) "Rp ${KastepViewModel.formatRupiah(denda)}" else "-",
+                            if (!bolehLihat) "" else if (denda > 0) "Rp ${KastepViewModel.formatRupiah(denda)}" else "-",
                             color = if (denda > 0) KastepRed else KastepGray, fontSize = 12.sp,
                             modifier = Modifier.width(80.dp), textAlign = TextAlign.End
                         )

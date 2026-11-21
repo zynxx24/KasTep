@@ -144,6 +144,7 @@ fun DashboardScreen(
     }
 }
 
+// Kartu ringkasan Dashboard: Saldo saat ini, Pemasukan, Pengeluaran.
 @Composable
 private fun SummaryCard(modifier: Modifier = Modifier, title: String, amount: String, icon: androidx.compose.ui.graphics.vector.ImageVector, iconTint: Color) {
     Card(modifier = modifier, shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = KastepCardDark)) {

@@ -158,6 +158,7 @@ fun RegisterScreen(
     }
 }
 
+// Kolom isian berlabel di form Register.
 @Composable
 private fun FormField(
     label: String,

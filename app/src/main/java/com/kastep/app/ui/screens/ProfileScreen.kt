@@ -244,6 +244,7 @@ fun ProfileScreen(
     }
 }
 
+// Satu baris menu di Profil (Edit Akun, Keluar).
 @Composable
 private fun ProfileMenuItem(
     icon: ImageVector,

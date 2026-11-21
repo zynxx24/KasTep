@@ -208,6 +208,7 @@ private fun PaymentConfirmDialog(
     var expandedBulan by remember { mutableStateOf(false) }
     val bulanOptions = viewModel.getBulanKas()
 
+    // Cek apakah bulan itu sudah LUNAS supaya tidak bisa dibayar dua kali.
     fun isLunas(siswa: com.kastep.app.data.Siswa?, bulan: String): Boolean =
         siswa != null && viewModel.statusBulan(siswa, bulan) == com.kastep.app.data.StatusBayar.LUNAS
     val selectedSiswa = students.find { it.nama == selectedStudent }
@@ -379,11 +380,13 @@ internal fun sendWhatsAppConfirmation(context: Context, studentName: String, bul
     } catch (_: Exception) { }
 }
 
+// Wadah bagian pilihan metode bayar.
 @Composable
 private fun PaymentMethodSection(content: @Composable () -> Unit) {
     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) { content() }
 }
 
+// Kartu logo metode bayar (DANA, GoPay, BCA, dll) yang bisa dipilih.
 @Composable
 private fun PaymentIconCardSelectable(iconRes: Int, label: String, selected: Boolean, onClick: () -> Unit) {
     Card(

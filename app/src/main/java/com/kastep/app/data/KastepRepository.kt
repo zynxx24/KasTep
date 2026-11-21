@@ -112,6 +112,7 @@ class KastepRepository(context: Context? = null) {
         loadData()
     }
 
+    // Saat aplikasi dibuka: muat data tersimpan, atau pakai data awal buku kas bila belum ada.
     private fun loadData() {
         if (prefs != null && prefs.contains(DATA_KEY)) {
             loadFromPrefs()
@@ -124,6 +125,7 @@ class KastepRepository(context: Context? = null) {
     // ==================== AUTH ====================
 
     // CARI-LOGIN CARI-VALIDASI | Cek format email, panjang password (min. 5), lalu cocokkan dengan akun terdaftar.
+    // TANYA-GURU: Validasi login? Email harus ada @ dan titik, password minimal 5 karakter, lalu dicocokkan dengan akun terdaftar.
     fun login(email: String, password: String): String? {
         val trimEmail = email.trim().lowercase()
         val trimPass = password.trim()
@@ -180,6 +182,7 @@ class KastepRepository(context: Context? = null) {
         return null
     }
 
+    // Keluar akun: profil dikosongkan dan status login false, lalu disimpan.
     fun logout() {
         _userProfile.value = UserProfile()
         _isLoggedIn.value = false
@@ -216,6 +219,7 @@ class KastepRepository(context: Context? = null) {
         return null
     }
 
+    // Menghapus siswa lalu menomori ulang daftar. Riwayat pembayaran lamanya tetap ada.
     fun deleteStudent(no: Int) {
         _students.value = _students.value.filter { it.no != no }
             .mapIndexed { index, siswa -> siswa.copy(no = index + 1) }
@@ -238,6 +242,7 @@ class KastepRepository(context: Context? = null) {
         return result
     }
 
+    // Jumlah minggu lunas satu bulan = minggu dibayar + minggu dispensasi (maksimal jumlah Senin).
     fun mingguLunas(siswa: Siswa, bulan: String): Int =
         ((siswa.bayar[bulan] ?: 0) + (siswa.dispensasi[bulan] ?: 0)).coerceAtMost(jumlahMinggu(bulan))
 
@@ -250,6 +255,7 @@ class KastepRepository(context: Context? = null) {
     fun sisaKas(siswa: Siswa, bulan: String): Long =
         (jumlahMinggu(bulan) - mingguLunas(siswa, bulan)).coerceAtLeast(0) * KAS_MINGGUAN
 
+    // Berapa bulan sebuah tagihan sudah lewat dari bulan sekarang (n di rumus denda).
     private fun bulanTerlambat(bulan: String): Int {
         val (y, m) = parseBulan(bulan) ?: return 0
         val cal = Calendar.getInstance()
@@ -263,15 +269,20 @@ class KastepRepository(context: Context? = null) {
      * Denda keterlambatan: Rp5.000 x jumlah bulan terlambat, untuk bulan yang belum lunas.
      * Contoh: kas Juli belum lunas dan sekarang November -> 4 bulan x Rp5.000 = Rp20.000.
      */
+    // TANYA-GURU: Rumus denda? Rp5.000 x n, n = bulan sekarang - bulan tagihan, hanya bulan yang belum LUNAS.
+    // Contoh: kas Juli belum lunas, sekarang November: 4 x 5.000 = Rp20.000. Bulan berjalan belum didenda (n = 0).
     fun calculateDenda(studentName: String, bulan: String): Long {
         val siswa = _students.value.find { it.nama == studentName } ?: return 0L
         if (statusBulan(siswa, bulan) == StatusBayar.LUNAS) return 0L
         return bulanTerlambat(bulan) * DENDA_PER_BULAN
     }
 
+    // Total denda satu siswa = jumlah denda semua bulan yang belum lunas.
     fun totalDenda(siswa: Siswa): Long = getBulanKas().sumOf { calculateDenda(siswa.nama, it) }
 
     // CARI-PEMBAYARAN CARI-DENDA | Mencatat pembayaran: jumlah = sisa kas + denda, lalu bulan itu menjadi LUNAS.
+    // TANYA-GURU: Apa yang terjadi saat Bayar Sekarang? Total = sisa minggu x Rp5.000 + denda, disimpan ke riwayat,
+    // lalu bulan itu menjadi LUNAS. Bendahara tetap mengecek uangnya secara manual (verifikasi admin masih rencana).
     fun processPayment(studentName: String, bulan: String, metode: String): String? {
         if (studentName.isBlank()) return "Pilih siswa terlebih dahulu"
         if (bulan.isBlank()) return "Pilih bulan pembayaran"
@@ -325,6 +336,7 @@ class KastepRepository(context: Context? = null) {
         return null
     }
 
+    // Menghapus pengeluaran (khusus Admin), saldo otomatis bertambah lagi.
     fun deletePengeluaran(id: String) {
         _pengeluaranList.value = _pengeluaranList.value.filter { it.id != id }
         saveToPrefs()
@@ -346,6 +358,7 @@ class KastepRepository(context: Context? = null) {
         saveToPrefs()
     }
 
+    // Tanggal hari ini dengan format Indonesia, contoh "21 November 2026".
     fun getCurrentDateString(): String {
         val sdf = SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID"))
         return sdf.format(Date())
@@ -699,11 +712,13 @@ class KastepRepository(context: Context? = null) {
 
     // ==================== PERSISTENCE ====================
 
+    // Mengubah profil akun menjadi JSON untuk disimpan di HP.
     private fun profileToJson(p: UserProfile) = JSONObject().apply {
         put("nama", p.nama); put("email", p.email); put("nis", p.nis); put("kelas", p.kelas)
         put("noHp", p.noHp); put("password", p.password); put("role", p.role.name)
     }
 
+    // Membaca profil akun dari JSON yang tersimpan.
     private fun profileFromJson(o: JSONObject) = UserProfile(
         nama = o.optString("nama", "Admin"), email = o.optString("email", ""),
         nis = o.optString("nis", ""), kelas = o.optString("kelas", "XII PPLG"),
@@ -711,11 +726,14 @@ class KastepRepository(context: Context? = null) {
         role = runCatching { UserRole.valueOf(o.optString("role", "USER")) }.getOrDefault(UserRole.USER)
     )
 
+    // Mengubah peta bulan ke jumlah minggu menjadi JSON.
     private fun mapToJson(m: Map<String, Int>) = JSONObject().apply { m.forEach { (k, v) -> put(k, v) } }
+    // Membaca peta bulan ke jumlah minggu dari JSON.
     private fun mapFromJson(o: JSONObject?): Map<String, Int> =
         o?.keys()?.asSequence()?.associateWith { o.optInt(it) } ?: emptyMap()
 
     // CARI-SIMPAN-DATA | Menyimpan semua data ke HP (JSON di SharedPreferences).
+    // TANYA-GURU: Data disimpan di mana? File kastep_prefs di HP (SharedPreferences, JSON). Belum tersinkron antar HP.
     private fun saveToPrefs() {
         if (prefs == null) return
         val stArray = JSONArray()

@@ -32,43 +32,65 @@ class KastepViewModel(application: Application) : AndroidViewModel(application) 
         get() = pengeluaranList.value.sumOf { it.jumlah }
 
     // CARI-SALDO | Saldo = total pemasukan - total pengeluaran (dipakai Dashboard).
+    // TANYA-GURU: Saldo dihitung dari mana? Total semua pembayaran (kas + donasi) - total pengeluaran = Rp1.389.000.
     val saldo: Long
         get() = totalIncome - totalExpense
 
     // Auth
+    // Login: diteruskan ke repository, hasil null = berhasil, teks = pesan kesalahan.
     fun login(email: String, password: String): String? = repository.login(email, password)
+    // Daftar akun baru (selalu berperan USER).
     fun register(nama: String, email: String, nis: String, kelas: String, noHp: String, password: String): String? =
         repository.register(nama, email, nis, kelas, noHp, password)
+    // Keluar dari akun.
     fun logout() = repository.logout()
+    // Simpan perubahan nama dan No. HP.
     fun updateProfile(nama: String, noHp: String): String? = repository.updateProfile(nama, noHp)
 
     // Student CRUD
+    // Tambah siswa (Admin).
     fun addStudent(nama: String, peran: String): String? = repository.addStudent(nama, peran)
+    // Ubah nama atau peran siswa (Admin).
     fun updateStudent(no: Int, nama: String, peran: String): String? = repository.updateStudent(no, nama, peran)
+    // Hapus siswa (Admin).
     fun deleteStudent(no: Int) = repository.deleteStudent(no)
 
     // Payments
+    // Catat pembayaran satu bulan: sisa kas + denda, bulan itu jadi LUNAS.
     fun processPayment(studentName: String, bulan: String, metode: String): String? =
         repository.processPayment(studentName, bulan, metode)
+    // Denda satu bulan tagihan untuk satu siswa.
     fun calculateDenda(studentName: String, bulan: String): Long =
         repository.calculateDenda(studentName, bulan)
+    // Daftar bulan tagihan: Juli 2026 sampai bulan sekarang.
     fun getBulanKas(): List<String> = repository.getBulanKas()
+    // LUNAS atau BELUM untuk satu siswa di satu bulan.
     fun statusBulan(siswa: Siswa, bulan: String): StatusBayar = repository.statusBulan(siswa, bulan)
+    // Jumlah minggu lunas (dibayar + dispensasi) satu bulan.
     fun mingguLunas(siswa: Siswa, bulan: String): Int = repository.mingguLunas(siswa, bulan)
+    // Kekurangan kas satu bulan dalam rupiah.
     fun sisaKas(siswa: Siswa, bulan: String): Long = repository.sisaKas(siswa, bulan)
+    // Total denda semua bulan untuk satu siswa.
     fun totalDenda(siswa: Siswa): Long = repository.totalDenda(siswa)
+    // Jumlah hari Senin (minggu kas) dalam satu bulan.
     fun jumlahMinggu(bulan: String): Int = KastepRepository.jumlahMinggu(bulan)
 
     // Pengeluaran
+    // Tambah pengeluaran (Admin).
     fun addPengeluaran(tanggal: String, jumlah: Long, keterangan: String): String? =
         repository.addPengeluaran(tanggal, jumlah, keterangan)
+    // Ubah pengeluaran (Admin).
     fun updatePengeluaran(id: String, tanggal: String, jumlah: Long, keterangan: String): String? =
         repository.updatePengeluaran(id, tanggal, jumlah, keterangan)
+    // Hapus pengeluaran (Admin).
     fun deletePengeluaran(id: String) = repository.deletePengeluaran(id)
 
     // Misc
+    // Kembalikan data ke buku kas awal (belum ada tombolnya di aplikasi).
     fun resetData() = repository.resetData()
+    // Teks laporan untuk tombol Bagikan Laporan (tanpa nama siswa).
     fun generateReportText(): String = repository.generateReportText()
+    // Tanggal hari ini untuk bar atas dan transaksi.
     fun getCurrentDateString(): String = repository.getCurrentDateString()
 
     companion object {

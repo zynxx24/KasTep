@@ -181,6 +181,7 @@ fun MataPelajaranScreen(
     }
 }
 
+// Kartu tabel jadwal pelajaran Senin sampai Jumat.
 @Composable
 private fun ScheduleTableSection() {
     Card(
@@ -239,6 +240,7 @@ private fun ScheduleTableSection() {
     }
 }
 
+// Baris judul tabel jadwal: nomor jam 1 sampai 10.
 @Composable
 private fun ScheduleHeaderRow() {
     val cellWidth = 36.dp
@@ -276,6 +278,7 @@ private fun ScheduleHeaderRow() {
     }
 }
 
+// Satu baris hari di tabel jadwal.
 @Composable
 private fun ScheduleDayRow(day: String, entries: List<ScheduleEntry>) {
     val cellWidth = 36.dp
@@ -314,6 +317,7 @@ private fun ScheduleDayRow(day: String, entries: List<ScheduleEntry>) {
     }
 }
 
+// Baris khusus Senin karena ada dua mapel dalam jam yang sama.
 @Composable
 @Suppress("UNUSED_PARAMETER")
 private fun SeninRow(entries: List<ScheduleEntry>, cellWidth: Dp, @Suppress("unused") rowHeight: Dp) {
@@ -373,6 +377,7 @@ private fun SeninRow(entries: List<ScheduleEntry>, cellWidth: Dp, @Suppress("unu
     }
 }
 
+// Baris hari biasa: kotak mapel ditempatkan sesuai jam mulai.
 @Composable
 private fun NormalDayRow(entries: List<ScheduleEntry>, cellWidth: Dp) {
     // Fill periods 1-10, placing subject blocks where they belong
@@ -422,6 +427,7 @@ private fun NormalDayRow(entries: List<ScheduleEntry>, cellWidth: Dp) {
     }
 }
 
+// Satu kotak mapel berwarna berisi nama mapel dan guru.
 @Composable
 private fun SubjectBlock(
     subject: String,
@@ -466,6 +472,7 @@ private fun SubjectBlock(
 }
 
 // ─── Time Allocation Section ───
+// Kartu tabel alokasi waktu: jam mulai dan selesai setiap jam pelajaran.
 @Composable
 private fun TimeAllocationSection() {
     Card(
@@ -505,6 +512,7 @@ private fun TimeAllocationSection() {
     }
 }
 
+// Judul tabel alokasi waktu (jam ke, Senin, Selasa sampai Jumat).
 @Composable
 private fun TimeTableHeader() {
     val colWidth1 = 56.dp
@@ -523,6 +531,7 @@ private fun TimeTableHeader() {
     }
 }
 
+// Satu sel judul tabel alokasi waktu.
 @Composable
 private fun TimeHeaderCell(text: String, width: Dp, bgColor: Color) {
     Box(
@@ -545,6 +554,7 @@ private fun TimeHeaderCell(text: String, width: Dp, bgColor: Color) {
     }
 }
 
+// Satu baris jam pelajaran atau istirahat.
 @Composable
 private fun TimeTableRow(slot: TimeSlot, isBreak: Boolean, isEven: Boolean) {
     val colWidth1 = 56.dp
@@ -565,6 +575,7 @@ private fun TimeTableRow(slot: TimeSlot, isBreak: Boolean, isEven: Boolean) {
     }
 }
 
+// Satu sel isi tabel alokasi waktu.
 @Composable
 private fun TimeDataCell(text: String, width: Dp, bgColor: Color, textColor: Color, isBold: Boolean) {
     Box(

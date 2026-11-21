@@ -66,6 +66,7 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: KastepViewModel by viewModels()
 
+    // Titik awal aplikasi: memasang tema KASTEP lalu memanggil KastepApp.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -87,6 +88,7 @@ private data class DrawerMenuItem(
     val route: String
 )
 
+// Kerangka aplikasi: menu samping (drawer) + NavGraph. Drawer hanya aktif setelah login.
 @Composable
 fun KastepApp(viewModel: KastepViewModel) {
     val navController = rememberNavController()

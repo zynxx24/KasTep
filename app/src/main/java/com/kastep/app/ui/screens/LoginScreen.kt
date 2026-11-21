@@ -232,6 +232,7 @@ fun LoginScreen(
     }
 }
 
+// Logo dan tulisan KASTEP (Kas Anak Sekolah Teep) di layar login.
 @Composable
 fun KastepLogoHeader() {
     Row(verticalAlignment = Alignment.CenterVertically) {

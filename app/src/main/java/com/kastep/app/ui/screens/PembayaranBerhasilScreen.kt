@@ -96,6 +96,7 @@ private val DomeRise = 45.dp
 
 /** Green section with a convex dome on top, like the design. */
 private object DomeShape : Shape {
+    // Bentuk kubah melengkung di bagian atas kartu Pembayaran Berhasil.
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
         val rise = with(density) { DomeRise.toPx() }
         val path = Path().apply {
@@ -334,6 +335,7 @@ internal fun PembayaranBerhasilContent(
     }
 }
 
+// Label kecil berisi info (bulan dan metode).
 @Composable
 private fun InfoChip(text: String) {
     Text(
@@ -348,6 +350,7 @@ private fun InfoChip(text: String) {
     )
 }
 
+// Baris Jumlah Pembayaran dan Atas Nama.
 @Composable
 private fun DetailRow(label: String, value: String) {
     Row(
@@ -393,6 +396,7 @@ private fun FlyingMoney(modifier: Modifier = Modifier) {
         val bh = h * 0.17f
         val stroke = 1.6.dp.toPx()
 
+        // Menggambar satu lembar uang kertas untuk animasi berhasil.
         fun bill(cx: Float, cy: Float, deg: Float) {
             rotate(deg, pivot = Offset(cx, cy)) {
                 val tl = Offset(cx - bw / 2, cy - bh / 2)
@@ -412,6 +416,7 @@ private fun FlyingMoney(modifier: Modifier = Modifier) {
             }
         }
 
+        // Menggambar kilau bintang kecil untuk animasi.
         fun sparkle(cx: Float, cy: Float, s: Float) {
             val path = Path().apply {
                 moveTo(cx, cy - s); lineTo(cx + s, cy); lineTo(cx, cy + s); lineTo(cx - s, cy); close()
@@ -479,6 +484,7 @@ private fun Fireworks(scaleRight: Float, scaleLeft: Float) {
     }
 }
 
+// Efek ledakan garis warna saat pembayaran berhasil.
 private fun DrawScope.burst(center: Offset, startDeg: Float, sweepDeg: Float, scale: Float, colors: List<Color>) {
     if (scale <= 0.01f) return
     val inner = 30.dp.toPx() * scale
@@ -496,6 +502,7 @@ private fun DrawScope.burst(center: Offset, startDeg: Float, sweepDeg: Float, sc
 private fun DrawScope.drawPetal(
     center: Offset, deg: Float, inner: Float, outer: Float, r: Float, color: Color
 ) {
+    // Arah garis dari sudut derajat.
     fun dir(d: Float): Offset {
         val a = Math.toRadians(d.toDouble())
         return Offset(cos(a).toFloat(), sin(a).toFloat())

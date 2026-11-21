@@ -25,6 +25,7 @@ private val KastepDarkScheme = darkColorScheme(
     outline = KastepCardBorder
 )
 
+// Tema hitam dengan aksen cyan dan biru yang membungkus seluruh layar.
 @Composable
 fun KastepTheme(content: @Composable () -> Unit) {
     val view = LocalView.current

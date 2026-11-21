@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kastep.app.data.KastepViewModel
 import com.kastep.app.data.StatusBayar
+import com.kastep.app.data.UserRole
 import com.kastep.app.ui.theme.*
 
 // CARI-LAPORAN CARI-SALDO | Pemasukan & pengeluaran mengikuti periode yang dipilih; Semua Periode menampilkan saldo akhir.
@@ -44,6 +45,7 @@ import com.kastep.app.ui.theme.*
 @Composable
 fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNavigateToProfile: () -> Unit = {}) {
     val userProfile by viewModel.userProfile.collectAsState()
+    val isAdmin = userProfile.role == UserRole.ADMIN
     val students by viewModel.students.collectAsState()
     val paymentRecords by viewModel.paymentRecords.collectAsState()
     val pengeluaranList by viewModel.pengeluaranList.collectAsState()
@@ -228,8 +230,9 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
                         Text("📅 $b", fontWeight = FontWeight.Bold, color = KastepBlue, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("✅ Lunas (${lunas.size})", fontWeight = FontWeight.Medium, color = KastepGreen, fontSize = 13.sp)
-                        Text("❌ Belum (${belum.size}):", fontWeight = FontWeight.Medium, color = KastepRed, fontSize = 13.sp)
-                        belum.forEach {
+                        Text("❌ Belum (${belum.size})" + if (isAdmin) ":" else "", fontWeight = FontWeight.Medium, color = KastepRed, fontSize = 13.sp)
+                        // Privasi: nama yang belum bayar hanya untuk ADMIN, USER cukup melihat jumlahnya
+                        if (isAdmin) belum.forEach {
                             val denda = viewModel.calculateDenda(it.nama, b)
                             Text(
                                 "  • ${it.nama} — kurang Rp ${KastepViewModel.formatRupiah(viewModel.sisaKas(it, b))}" +
@@ -275,6 +278,7 @@ fun LaporanKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
     }
 }
 
+// Kartu Total Pemasukan / Total Pengeluaran, bisa ditekan untuk melihat rincian.
 @Composable
 private fun ReportSummaryCard(modifier: Modifier = Modifier, label: String, amount: String, borderColor: Color, labelColor: Color, coinColor: Color) {
     Box(modifier = modifier.border(1.5.dp, borderColor, RoundedCornerShape(12.dp)).padding(16.dp)) {
@@ -290,6 +294,7 @@ private fun ReportSummaryCard(modifier: Modifier = Modifier, label: String, amou
     }
 }
 
+// Ikon tumpukan koin digambar dengan Canvas.
 @Composable
 private fun CoinStackIcon(color: Color) {
     Canvas(modifier = Modifier.size(36.dp)) {
