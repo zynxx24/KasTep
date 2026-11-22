@@ -6,15 +6,18 @@
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
 //  BACA INI DULU : LAYAR "PEMBAYARAN" (bayar kas)
-//  Alur pengguna (urut):
+//  Layar ini punya DUA mode menurut peran akun yang login:
+//  USER (siswa), alurnya:
 //    1. Pilih METODE: QRIS, e-wallet (DANA, GoPay, OVO), bank (BCA, Mandiri, BNI), atau CASH. Metode dipilih = kartu berwarna.
 //    2. Untuk e-wallet dan bank, muncul kotak "Transfer via ..." berisi nomor tujuan (accNo). Nomor ini masih NOMOR CONTOH, ganti dengan rekening kelas asli.
-//    3. Tekan tombol hijau PEMBAYARAN -> dialog Konfirmasi (PaymentConfirmDialog): pilih siswa lalu pilih bulan.
-//       Dialog menghitung otomatis: sisa kas bulan itu + denda = Total Bayar. Bulan yang sudah LUNAS tidak bisa dipilih.
-//    4. Tekan konfirmasi -> viewModel.processPayment mencatat pembayaran -> pindah ke layar Pembayaran Berhasil.
-//    5. Di layar Berhasil ada tombol WhatsApp yang mengirim konfirmasi ke bendahara (sendWhatsAppConfirmation).
-//  Untuk QRIS: dialog gambar QRIS (res/drawable/ic_qris) tampil dulu, "Lanjut" membuka dialog konfirmasi yang sama.
-//  Catatan jujur: pembayaran langsung berstatus LUNAS tanpa verifikasi admin. Bendahara mengecek uang masuk secara manual.
+//    3. Tekan tombol hijau PEMBAYARAN -> dialog (PaymentConfirmDialog). Nama terkunci ke nama akun sendiri, pilih DARI BULAN dan SAMPAI BULAN.
+//       Dialog menghitung otomatis: sisa kas + denda tiap bulan yang belum lunas = Total Bayar.
+//    4. Tekan "Kirim Konfirmasi ke Bendahara" -> WhatsApp bendahara terbuka berisi rincian. STATUS TIDAK BERUBAH di aplikasi.
+//  ADMIN (bendahara), alurnya:
+//    1. Pilih metode yang dipakai siswa, tekan PEMBAYARAN, pilih SISWA, lalu DARI BULAN dan SAMPAI BULAN yang dibayar.
+//    2. Tekan "Catat Pembayaran" -> viewModel.processPaymentRange mencatat tiap bulan -> bulan itu LUNAS -> layar Pembayaran Berhasil.
+//  Jadi yang membuat status LUNAS hanya bendahara, setelah uangnya dicek. Siswa tidak bisa menandai dirinya sendiri lunas.
+//  Untuk QRIS: dialog gambar QRIS (res/drawable/ic_qris) tampil dulu, "Lanjut" membuka dialog yang sama.
 package com.kastep.app.ui.screens
 
 import android.content.Context
@@ -56,6 +59,8 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
     val students by viewModel.students.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
     val context = LocalContext.current
+    // isAdmin = bendahara (bisa mencatat pembayaran). Selain itu USER (siswa) yang hanya bisa mengirim konfirmasi WA.
+    val isAdmin = userProfile.role == com.kastep.app.data.UserRole.ADMIN
 
     // selectedMethod = metode yang dipilih (null = belum ada). showPaymentDialog / showQrisDialog = dialog mana yang sedang tampil.
     var selectedMethod by remember { mutableStateOf<String?>(null) }
@@ -71,6 +76,12 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
         Text("Pembayaran", color = KastepWhite, fontSize = 22.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 20.dp))
         Spacer(modifier = Modifier.height(4.dp))
         Text("Iuran Kas: Rp 5.000 / minggu, dibayar per bulan", color = KastepCyan, fontSize = 14.sp, modifier = Modifier.padding(horizontal = 20.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            if (isAdmin) "Mode bendahara: catat pembayaran siswa setelah uangnya dicek."
+            else "Setelah membayar, kirim konfirmasi ke bendahara. Status menjadi LUNAS setelah bendahara mencatatnya.",
+            color = KastepGray, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 20.dp)
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
         HorizontalDivider(color = KastepGray.copy(alpha = 0.3f), thickness = 0.5.dp)
@@ -172,22 +183,34 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
         Spacer(modifier = Modifier.height(32.dp))
     }
 
-    // Dialog konfirmasi. onConfirm memanggil viewModel.processPayment; hasil null = sukses -> pindah ke layar Berhasil, selain itu pesan error ditampilkan sebagai Toast.
-    // Payment Dialog: select student + month
+    // Dialog pembayaran.
+    //   ADMIN: onConfirm memanggil viewModel.processPaymentRange (mencatat bulan dari sampai bulan). null = sukses -> layar Berhasil.
+    //   USER : onConfirm hanya membuka WhatsApp bendahara. Tidak ada data yang diubah, status tetap sampai bendahara mencatat.
+    // Payment Dialog: select student + month range
     if (showPaymentDialog) {
         PaymentConfirmDialog(
             viewModel = viewModel,
             students = students,
             method = selectedMethod ?: "Cash",
+            isAdmin = isAdmin,
+            namaAkun = userProfile.nama.trim().uppercase(),
             onDismiss = { showPaymentDialog = false },
-            onConfirm = { studentName, bulan, _, _ ->
-                val result = viewModel.processPayment(studentName, bulan, selectedMethod ?: "Cash")
-                if (result == null) {
-                    showPaymentDialog = false
-                    // WhatsApp confirmation is sent from the success screen, so it is always seen first.
-                    onPaymentSuccess()
+            onConfirm = { studentName, bulanList, totalBayar, denda ->
+                val metode = selectedMethod ?: "Cash"
+                if (isAdmin) {
+                    val result = viewModel.processPaymentRange(studentName, bulanList, metode)
+                    if (result == null) {
+                        showPaymentDialog = false
+                        onPaymentSuccess()
+                    } else {
+                        android.widget.Toast.makeText(context, result, android.widget.Toast.LENGTH_SHORT).show()
+                    }
                 } else {
-                    android.widget.Toast.makeText(context, result, android.widget.Toast.LENGTH_SHORT).show()
+                    showPaymentDialog = false
+                    sendWhatsAppConfirmation(context, studentName, bulanList.joinToString(", "), metode, totalBayar, denda, sudahDicatat = false)
+                    android.widget.Toast.makeText(
+                        context, "Konfirmasi dikirim. Status menjadi LUNAS setelah bendahara mencatat.", android.widget.Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         )
@@ -206,142 +229,191 @@ fun PembayaranScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, onNav
 
 }
 
-// DIALOG KONFIRMASI PEMBAYARAN. Hitungan di dalamnya:
+// DIALOG PEMBAYARAN (dipakai USER dan ADMIN). Hitungan di dalamnya, untuk tiap bulan yang BELUM LUNAS di rentang yang dipilih:
 //   denda      = viewModel.calculateDenda(siswa, bulan)         (Rp5.000 x bulan terlambat bila belum lunas)
 //   kasBulanan = viewModel.sisaKas(siswa, bulan)                (minggu belum bayar x Rp5.000)
-//   totalBayar = kasBulanan + denda                              (angka yang tampil dan dicatat)
-// Daftar siswa menandai "Belum: Juli, Agustus" atau "Lunas semua" (siswa yang lunas semua tidak bisa dipilih).
-// canPay = siswa dan bulan sudah dipilih dan bulan itu belum lunas. Tombol bayar mati bila canPay false.
-// CARI-PEMBAYARAN CARI-DENDA | Total bayar = sisa minggu x Rp5.000 + denda. Bulan yang sudah lunas tidak bisa dipilih.
+//   totalBayar = jumlah (kasBulanan + denda) semua bulan itu
+// ADMIN memilih siswa dari daftar (ada keterangan "Belum: Juli, Agustus"). USER tidak memilih siswa, nama terkunci ke akunnya sendiri.
+// Rentang bulan: "Dari bulan" dan "Sampai bulan". Bulan yang sudah LUNAS di dalam rentang dilewati, tidak dibayar dua kali.
+// canPay = siswa ada, rentang benar (sampai tidak sebelum dari), dan ada minimal satu bulan yang belum lunas.
+// CARI-PEMBAYARAN CARI-DENDA | Total bayar = jumlah (sisa minggu x Rp5.000 + denda) bulan yang belum lunas di rentang.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PaymentConfirmDialog(
     viewModel: KastepViewModel,
     students: List<com.kastep.app.data.Siswa>,
     method: String,
+    isAdmin: Boolean,
+    namaAkun: String,
     onDismiss: () -> Unit,
-    onConfirm: (String, String, Long, Long) -> Unit
+    onConfirm: (String, List<String>, Long, Long) -> Unit
 ) {
-    var selectedStudent by remember { mutableStateOf("") }
-    var selectedBulan by remember { mutableStateOf("") }
-    var expandedStudent by remember { mutableStateOf(false) }
-    var expandedBulan by remember { mutableStateOf(false) }
     val bulanOptions = viewModel.getBulanKas()
-
     // Cek apakah bulan itu sudah LUNAS supaya tidak bisa dibayar dua kali.
     fun isLunas(siswa: com.kastep.app.data.Siswa?, bulan: String): Boolean =
         siswa != null && viewModel.statusBulan(siswa, bulan) == com.kastep.app.data.StatusBayar.LUNAS
-    val selectedSiswa = students.find { it.nama == selectedStudent }
-    val sudahLunas = selectedBulan.isNotBlank() && isLunas(selectedSiswa, selectedBulan)
-    val canPay = selectedStudent.isNotBlank() && selectedBulan.isNotBlank() && !sudahLunas
 
-    val denda = if (selectedStudent.isNotBlank() && selectedBulan.isNotBlank()) {
-        viewModel.calculateDenda(selectedStudent, selectedBulan)
-    } else 0L
-    // Tagihan = sisa minggu yang belum dibayar pada bulan itu x Rp5.000
-    val kasBulanan = if (selectedSiswa != null && selectedBulan.isNotBlank()) viewModel.sisaKas(selectedSiswa, selectedBulan) else 0L
-    val mingguBelum = if (kasBulanan > 0) (kasBulanan / 5000).toInt() else 0
-    val totalBayar = kasBulanan + denda
+    // USER: siswa = baris Data Siswa yang namanya sama dengan nama akun. ADMIN: siswa dipilih dari daftar.
+    val siswaAkun = students.find { it.nama == namaAkun }
+    var selectedStudent by remember { mutableStateOf(if (isAdmin) "" else siswaAkun?.nama.orEmpty()) }
+    val selectedSiswa = students.find { it.nama == selectedStudent }
+    val awalBelum = selectedSiswa?.let { s -> bulanOptions.firstOrNull { !isLunas(s, it) } }.orEmpty()
+    var dariBulan by remember { mutableStateOf(awalBelum) }
+    var sampaiBulan by remember { mutableStateOf(awalBelum) }
+    var expandedStudent by remember { mutableStateOf(false) }
+    var expandedDari by remember { mutableStateOf(false) }
+    var expandedSampai by remember { mutableStateOf(false) }
+
+    // Rentang bulan yang dipilih, lalu hanya bulan yang belum lunas yang dihitung.
+    val iDari = bulanOptions.indexOf(dariBulan)
+    val iSampai = bulanOptions.indexOf(sampaiBulan)
+    val rentangSalah = iDari >= 0 && iSampai >= 0 && iSampai < iDari
+    val rentang = if (iDari >= 0 && iSampai >= iDari) bulanOptions.subList(iDari, iSampai + 1) else emptyList()
+    val bulanBelum = rentang.filterNot { isLunas(selectedSiswa, it) }
+    val rincian = if (selectedSiswa != null) bulanBelum.map { b ->
+        Triple(b, viewModel.sisaKas(selectedSiswa, b), viewModel.calculateDenda(selectedSiswa.nama, b))
+    } else emptyList()
+    val totalKas = rincian.sumOf { it.second }
+    val totalDenda = rincian.sumOf { it.third }
+    val totalBayar = totalKas + totalDenda
+    val canPay = selectedSiswa != null && !rentangSalah && bulanBelum.isNotEmpty()
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Konfirmasi Pembayaran ($method)", fontWeight = FontWeight.Bold, fontSize = 16.sp) },
+        title = {
+            Text(
+                if (isAdmin) "Catat Pembayaran ($method)" else "Konfirmasi Pembayaran ($method)",
+                fontWeight = FontWeight.Bold, fontSize = 16.sp
+            )
+        },
         text = {
-            Column {
-                Text("Pilih Siswa:", fontWeight = FontWeight.Medium)
-                Spacer(modifier = Modifier.height(4.dp))
-                ExposedDropdownMenuBox(expanded = expandedStudent, onExpandedChange = { expandedStudent = it }) {
-                    OutlinedTextField(
-                        value = selectedStudent, onValueChange = {}, readOnly = true,
-                        label = { Text("Nama Siswa") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedStudent) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(expanded = expandedStudent, onDismissRequest = { expandedStudent = false }) {
-                        students.forEach { s ->
-                            val belum = bulanOptions.filterNot { isLunas(s, it) }
-                            val lunasSemua = belum.isEmpty()
-                            DropdownMenuItem(
-                                text = {
-                                    Column {
-                                        Text(s.nama, fontSize = 13.sp, color = if (lunasSemua) Color.Gray else Color.Unspecified)
-                                        Text(
-                                            if (lunasSemua) "Lunas semua"
-                                            else "Belum: " + belum.joinToString { it.substringBefore(" ") },
-                                            fontSize = 11.sp,
-                                            color = if (lunasSemua) KastepGreen else Color(0xFFFF6B6B)
-                                        )
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                if (isAdmin) {
+                    Text("Pilih Siswa:", fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    ExposedDropdownMenuBox(expanded = expandedStudent, onExpandedChange = { expandedStudent = it }) {
+                        OutlinedTextField(
+                            value = selectedStudent, onValueChange = {}, readOnly = true,
+                            label = { Text("Nama Siswa") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedStudent) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(expanded = expandedStudent, onDismissRequest = { expandedStudent = false }) {
+                            students.forEach { s ->
+                                val belum = bulanOptions.filterNot { isLunas(s, it) }
+                                val lunasSemua = belum.isEmpty()
+                                DropdownMenuItem(
+                                    text = {
+                                        Column {
+                                            Text(s.nama, fontSize = 13.sp, color = if (lunasSemua) Color.Gray else Color.Unspecified)
+                                            Text(
+                                                if (lunasSemua) "Lunas semua"
+                                                else "Belum: " + belum.joinToString { it.substringBefore(" ") },
+                                                fontSize = 11.sp,
+                                                color = if (lunasSemua) KastepGreen else Color(0xFFFF6B6B)
+                                            )
+                                        }
+                                    },
+                                    enabled = !lunasSemua,
+                                    onClick = {
+                                        selectedStudent = s.nama; expandedStudent = false
+                                        // Bulan awal dan akhir langsung diisi bulan pertama yang belum lunas.
+                                        val pertama = belum.firstOrNull().orEmpty()
+                                        dariBulan = pertama; sampaiBulan = pertama
                                     }
-                                },
-                                enabled = !lunasSemua,
-                                onClick = {
-                                    selectedStudent = s.nama; expandedStudent = false
-                                    // Pre-select the first unpaid month so the user can pay right away.
-                                    if (selectedBulan.isBlank() || isLunas(s, selectedBulan)) {
-                                        selectedBulan = belum.firstOrNull() ?: ""
-                                    }
-                                }
-                            )
+                                )
+                            }
                         }
+                    }
+                } else {
+                    Text("Nama: ${if (siswaAkun != null) siswaAkun.nama else namaAkun}", fontWeight = FontWeight.Medium)
+                    if (siswaAkun == null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Nama akunmu belum ada di Data Siswa. Samakan nama di Profil atau hubungi bendahara.",
+                            color = Color(0xFFFF6B6B), fontSize = 12.sp
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Pilih Bulan:", fontWeight = FontWeight.Medium)
+
+                Text("Bulan yang dibayar:", fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(4.dp))
-                ExposedDropdownMenuBox(expanded = expandedBulan, onExpandedChange = { expandedBulan = it }) {
-                    OutlinedTextField(
-                        value = selectedBulan, onValueChange = {}, readOnly = true,
-                        label = { Text("Bulan") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedBulan) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(expanded = expandedBulan, onDismissRequest = { expandedBulan = false }) {
-                        bulanOptions.forEach { b ->
-                            val lunas = isLunas(selectedSiswa, b)
-                            DropdownMenuItem(
-                                text = { Text(if (lunas) "$b (Lunas)" else b) },
-                                enabled = !lunas,
-                                onClick = { selectedBulan = b; expandedBulan = false }
-                            )
-                        }
-                    }
+                val pilihan = bulanOptions.map { it to isLunas(selectedSiswa, it) }
+                BulanPicker("Dari bulan", dariBulan, expandedDari, { expandedDari = it }, pilihan) { b ->
+                    dariBulan = b
+                    if (bulanOptions.indexOf(sampaiBulan) < bulanOptions.indexOf(b)) sampaiBulan = b
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                BulanPicker("Sampai bulan", sampaiBulan, expandedSampai, { expandedSampai = it }, pilihan) { b -> sampaiBulan = b }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                when {
+                    selectedSiswa != null && bulanOptions.all { isLunas(selectedSiswa, it) } ->
+                        Text("${selectedSiswa.nama} sudah lunas semua bulan.", color = KastepGreen, fontSize = 12.sp)
+                    rentangSalah -> Text("Bulan akhir tidak boleh sebelum bulan awal.", color = Color(0xFFFF6B6B), fontSize = 12.sp)
+                    selectedSiswa != null && rentang.isNotEmpty() && bulanBelum.isEmpty() ->
+                        Text("$selectedStudent sudah lunas untuk bulan yang dipilih.", color = Color(0xFFFF6B6B), fontSize = 12.sp)
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (sudahLunas) {
+                // Rincian per bulan: kas + denda.
+                rincian.forEach { (b, kas, dnd) ->
                     Text(
-                        "$selectedStudent sudah lunas untuk $selectedBulan.",
-                        color = Color(0xFFFF6B6B), fontSize = 12.sp
+                        "$b: Rp ${KastepViewModel.formatRupiah(kas)}" + if (dnd > 0) " + denda Rp ${KastepViewModel.formatRupiah(dnd)}" else "",
+                        fontSize = 13.sp,
+                        color = if (dnd > 0) Color(0xFFFF6B6B) else Color.Unspecified
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
-
-                // Payment breakdown
-                Text(
-                    if (mingguBelum > 0) "Kas ($mingguBelum minggu x Rp 5.000): Rp ${KastepViewModel.formatRupiah(kasBulanan)}"
-                    else "Kas: Rp ${KastepViewModel.formatRupiah(kasBulanan)}",
-                    fontWeight = FontWeight.Medium
-                )
-                if (denda > 0) {
-                    val monthsLate = denda / 5000
-                    Text(
-                        "Denda ($monthsLate bulan telat): Rp ${KastepViewModel.formatRupiah(denda)}",
-                        color = Color(0xFFFF6B6B), fontWeight = FontWeight.Medium
-                    )
+                if (rincian.isNotEmpty()) Spacer(modifier = Modifier.height(4.dp))
+                Text("Kas: Rp ${KastepViewModel.formatRupiah(totalKas)}", fontWeight = FontWeight.Medium)
+                if (totalDenda > 0) {
+                    Text("Denda: Rp ${KastepViewModel.formatRupiah(totalDenda)}", color = Color(0xFFFF6B6B), fontWeight = FontWeight.Medium)
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("Total Bayar: Rp ${KastepViewModel.formatRupiah(totalBayar)}", fontWeight = FontWeight.Bold, color = KastepGreen, fontSize = 16.sp)
+                if (!isAdmin) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Status belum berubah sebelum bendahara mengecek dan mencatat pembayaranmu.",
+                        fontSize = 12.sp, color = Color.Gray
+                    )
+                }
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { if (canPay) onConfirm(selectedStudent, selectedBulan, totalBayar, denda) },
+                onClick = { if (canPay) onConfirm(selectedStudent, bulanBelum, totalBayar, totalDenda) },
                 enabled = canPay
-            ) { Text("Bayar Sekarang") }
+            ) { Text(if (isAdmin) "Catat Pembayaran" else "Kirim Konfirmasi ke Bendahara") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Batal") } }
     )
+}
+
+// Kotak pilihan satu bulan (dipakai untuk "Dari bulan" dan "Sampai bulan").
+// pilihan = daftar (bulan, sudahLunas). Bulan yang lunas tetap tampil berlabel (Lunas) supaya rentang bisa melewatinya.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BulanPicker(
+    label: String, value: String, expanded: Boolean, onExpanded: (Boolean) -> Unit,
+    pilihan: List<Pair<String, Boolean>>, onPick: (String) -> Unit
+) {
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = onExpanded) {
+        OutlinedTextField(
+            value = value, onValueChange = {}, readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier.menuAnchor().fillMaxWidth()
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
+            pilihan.forEach { (b, lunas) ->
+                DropdownMenuItem(
+                    text = { Text(if (lunas) "$b (Lunas)" else b) },
+                    onClick = { onPick(b); onExpanded(false) }
+                )
+            }
+        }
+    }
 }
 
 // CARI-QRIS | Gambar QRIS dari res/drawable/ic_qris.
@@ -380,23 +452,32 @@ private fun QrisSimulationDialog(onDismiss: () -> Unit, onProceed: () -> Unit) {
     )
 }
 
-// Membuka WhatsApp bendahara (nomor 6289520371942) dengan pesan konfirmasi berisi nama, bulan, metode, kas, denda, dan total.
+// Membuka WhatsApp dengan pesan berisi nama, bulan, metode, kas, denda, dan total.
+//   sudahDicatat = false (dari siswa)      : dikirim ke WA bendahara (nomor 6289520371942), isinya minta dicek dan dicatat.
+//   sudahDicatat = true  (dari bendahara) : WA membuka pilihan kontak, bendahara meneruskan bukti ke siswa atau grup.
 // Pesan disusun lalu di-encode untuk URL wa.me. Bila WhatsApp tidak ada, diam saja (try catch) agar tidak crash.
-// CARI-WHATSAPP | Membuka WhatsApp dengan pesan konfirmasi. Nomor tujuan ada di variabel phone.
-internal fun sendWhatsAppConfirmation(context: Context, studentName: String, bulan: String, method: String, totalBayar: Long, denda: Long) {
-    val phone = "6289520371942"
+// CARI-WHATSAPP | Membuka WhatsApp dengan pesan konfirmasi. Nomor bendahara ada di variabel phone.
+internal fun sendWhatsAppConfirmation(
+    context: Context, studentName: String, bulan: String, method: String, totalBayar: Long, denda: Long,
+    sudahDicatat: Boolean = true
+) {
+    val phone = if (sudahDicatat) "" else "6289520371942"
     val dendaLine = if (denda > 0) "Denda Telat: Rp ${KastepViewModel.formatRupiah(denda)}\n" else ""
-    val message = "✅ *KONFIRMASI PEMBAYARAN KAS*\n\n" +
+    val judul = if (sudahDicatat) "✅ *PEMBAYARAN KAS SUDAH DICATAT*" else "🧾 *KONFIRMASI PEMBAYARAN KAS*"
+    val penutup = if (sudahDicatat) "Pembayaran sudah dicatat bendahara di aplikasi KASTEP."
+                  else "Mohon dicek dan dicatat di aplikasi KASTEP. Terima kasih."
+    val message = "$judul\n\n" +
             "Nama: $studentName\n" +
             "Bulan: $bulan\n" +
             "Metode: $method\n" +
             "Kas: Rp ${KastepViewModel.formatRupiah(totalBayar - denda)}\n" +
             dendaLine +
             "Total Bayar: Rp ${KastepViewModel.formatRupiah(totalBayar)}\n\n" +
-            "Pembayaran telah berhasil dicatat di aplikasi KASTEP."
+            penutup
     val encodedMsg = URLEncoder.encode(message, "UTF-8")
     try {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$phone?text=$encodedMsg"))
+        val url = if (phone.isEmpty()) "https://wa.me/?text=$encodedMsg" else "https://wa.me/$phone?text=$encodedMsg"
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
     } catch (_: Exception) { }

@@ -26,7 +26,7 @@ Panduan mencari bagian penting kode KASTEP dengan cepat. Daftar di bawah dibuat 
 | `CARI-SALDO` | Rumus dan tampilan saldo | 4 |
 | `CARI-DENDA` | Rumus dan tampilan denda keterlambatan | 5 |
 | `CARI-DISPENSASI` | Siswa yang dibebaskan kas (BI/PKL) | 3 |
-| `CARI-PEMBAYARAN` | Mencatat / menampilkan pembayaran kas | 9 |
+| `CARI-PEMBAYARAN` | Mencatat / menampilkan pembayaran kas | 10 |
 | `CARI-PENGELUARAN` | Mencatat / menampilkan pengeluaran kas | 5 |
 | `CARI-ANGGOTA` | Data siswa / anggota kelas | 5 |
 | `CARI-LAPORAN` | Laporan dan statistik kas | 2 |
@@ -43,9 +43,9 @@ Panduan mencari bagian penting kode KASTEP dengan cepat. Daftar di bawah dibuat 
 
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:163` — Validasi login? Email harus ada @ dan titik, password minimal 5 karakter, lalu dicocokkan dengan akun terdaftar.
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:320` — Rumus denda? Rp5.000 x n, n = bulan sekarang - bulan tagihan, hanya bulan yang belum LUNAS.
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:340` — Apa yang terjadi saat Bayar Sekarang? Total = sisa minggu x Rp5.000 + denda, disimpan ke riwayat,
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:804` — Data disimpan di mana? File kastep_prefs di HP (SharedPreferences, JSON). Belum tersinkron antar HP.
-- `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:48` — Saldo dihitung dari mana? Total semua pembayaran (kas + donasi) - total pengeluaran = Rp1.389.000.
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:341` — Siapa yang membuat status jadi LUNAS? Hanya bendahara (Admin). Siswa transfer lalu kirim konfirmasi WA,
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:825` — Data disimpan di mana? File kastep_prefs di HP (SharedPreferences, JSON). Belum tersinkron antar HP.
+- `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:50` — Saldo dihitung dari mana? Total semua pembayaran (kas + donasi) - total pengeluaran = Rp1.389.000.
 - `app/src/main/java/com/kastep/app/ui/screens/DataSiswaScreen.kt:134` — Kenapa siswa lain tampil titik? Akun USER hanya melihat status dan dendanya sendiri supaya tidak dipermalukan.
 
 ## Lokasi lengkap
@@ -79,18 +79,18 @@ Panduan mencari bagian penting kode KASTEP dengan cepat. Daftar di bawah dibuat 
 ### `CARI-PUSAT-DATA`
 
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:43` — Semua perubahan data lewat sini; layar membaca lewat KastepViewModel.
-- `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:24` — Layar memanggil fungsi di sini; isi logikanya ada di KastepRepository.
+- `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:26` — Layar memanggil fungsi di sini; isi logikanya ada di KastepRepository.
 
 ### `CARI-DATA-AWAL`
 
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:407` — Mengembalikan semua data ke buku kas awal (sesi admin tetap).
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:460` — Data awal dari buku kas asli XII PPLG per 20 November 2026: siswa, minggu terbayar, riwayat, pengeluaran.
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:428` — Mengembalikan semua data ke buku kas awal (sesi admin tetap).
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:481` — Data awal dari buku kas asli XII PPLG per 20 November 2026: siswa, minggu terbayar, riwayat, pengeluaran.
 
 ### `CARI-SIMPAN-DATA`
 
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:83` — Kunci penyimpanan. Naikkan versinya bila data awal diganti supaya HP memuat ulang.
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:803` — Menyimpan semua data ke HP (JSON di SharedPreferences).
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:844` — Memuat data tersimpan; bila rusak kembali ke data awal.
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:824` — Menyimpan semua data ke HP (JSON di SharedPreferences).
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:865` — Memuat data tersimpan; bila rusak kembali ke data awal.
 
 ### `CARI-NOMINAL-KAS`
 
@@ -99,8 +99,8 @@ Panduan mencari bagian penting kode KASTEP dengan cepat. Daftar di bawah dibuat 
 
 ### `CARI-SALDO`
 
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:429` — Teks laporan ringkas untuk tombol Bagikan Laporan (saldo = pemasukan - pengeluaran).
-- `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:47` — Saldo = total pemasukan - total pengeluaran (dipakai Dashboard).
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:450` — Teks laporan ringkas untuk tombol Bagikan Laporan (saldo = pemasukan - pengeluaran).
+- `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:49` — Saldo = total pemasukan - total pengeluaran (dipakai Dashboard).
 - `app/src/main/java/com/kastep/app/ui/screens/DashboardScreen.kt:42` — Tiga kartu ringkasan + 10 transaksi terbaru (diurutkan menurut tanggal).
 - `app/src/main/java/com/kastep/app/ui/screens/LaporanKasScreen.kt:59` — Pemasukan & pengeluaran mengikuti periode yang dipilih; Semua Periode menampilkan saldo akhir.
 
@@ -108,15 +108,15 @@ Panduan mencari bagian penting kode KASTEP dengan cepat. Daftar di bawah dibuat 
 
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:81` — Besar denda untuk setiap bulan keterlambatan. Ubah angka ini untuk mengganti tarif.
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:314` — Rumus: Rp5.000 x jumlah bulan terlambat, hanya untuk bulan yang belum lunas.
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:339` — Mencatat pembayaran: jumlah = sisa kas + denda, lalu bulan itu menjadi LUNAS.
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:340` — Mencatat pembayaran (khusus Admin): jumlah = sisa kas + denda, lalu bulan itu menjadi LUNAS.
 - `app/src/main/java/com/kastep/app/ui/screens/DataSiswaScreen.kt:48` — Kolom bulan: ✓ lunas, angka = minggu terbayar, D = dispensasi, ✗ belum. Kolom terakhir = total denda.
-- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:215` — Total bayar = sisa minggu x Rp5.000 + denda. Bulan yang sudah lunas tidak bisa dipilih.
+- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:239` — Total bayar = jumlah (sisa minggu x Rp5.000 + denda) bulan yang belum lunas di rentang.
 
 ### `CARI-DISPENSASI`
 
 - `app/src/main/java/com/kastep/app/data/KastepModels.kt:41` — bayar = minggu lunas per bulan; dispensasi = minggu yang dibebaskan (BI/PKL).
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:292` — LUNAS bila minggu dibayar + minggu dispensasi >= jumlah Senin bulan itu.
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:498` — Minggu yang dibebaskan per siswa per bulan. Tambah: "NAMA" to mapOf("Bulan Tahun" to jumlahMinggu).
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:519` — Minggu yang dibebaskan per siswa per bulan. Tambah: "NAMA" to mapOf("Bulan Tahun" to jumlahMinggu).
 
 ### `CARI-PEMBAYARAN`
 
@@ -124,17 +124,18 @@ Panduan mencari bagian penting kode KASTEP dengan cepat. Daftar di bawah dibuat 
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:272` — Daftar bulan yang ditagih: Juli 2026 sampai bulan berjalan (otomatis bertambah).
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:292` — LUNAS bila minggu dibayar + minggu dispensasi >= jumlah Senin bulan itu.
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:297` — Kekurangan kas satu bulan = minggu belum lunas x Rp5.000.
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:339` — Mencatat pembayaran: jumlah = sisa kas + denda, lalu bulan itu menjadi LUNAS.
-- `app/src/main/java/com/kastep/app/ui/screens/PembayaranBerhasilScreen.kt:118` — Mengambil pembayaran terbaru lalu menampilkan jumlah & nama; tombol WA memakai sendWhatsAppConfirmation.
-- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:51` — Pilihan metode: QRIS, DANA, GoPay, OVO, BCA, Mandiri, BNI, Cash.
-- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:215` — Total bayar = sisa minggu x Rp5.000 + denda. Bulan yang sudah lunas tidak bisa dipilih.
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:340` — Mencatat pembayaran (khusus Admin): jumlah = sisa kas + denda, lalu bulan itu menjadi LUNAS.
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:373` — Catat rentang bulan (dari bulan ... sampai bulan ...), hanya Admin.
+- `app/src/main/java/com/kastep/app/ui/screens/PembayaranBerhasilScreen.kt:121` — Menjumlahkan baris yang baru dicatat bendahara lalu menampilkan jumlah & nama; tombol WA memakai sendWhatsAppConfirmation.
+- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:54` — Pilihan metode: QRIS, DANA, GoPay, OVO, BCA, Mandiri, BNI, Cash.
+- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:239` — Total bayar = jumlah (sisa minggu x Rp5.000 + denda) bulan yang belum lunas di rentang.
 - `app/src/main/java/com/kastep/app/ui/screens/RiwayatPembayaranScreen.kt:59` — 8 data per halaman; cari berdasarkan nama atau bulan; tombol Bayar Kas ke halaman Pembayaran.
 
 ### `CARI-PENGELUARAN`
 
 - `app/src/main/java/com/kastep/app/data/KastepModels.kt:69` — Satu pengeluaran; tanggal berformat "15 Juli 2026".
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:371` — Tambah pengeluaran; nominal > 0 dan keterangan wajib.
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:385` — Edit pengeluaran; tanggal harus terbaca (contoh 15 Juli 2026).
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:392` — Tambah pengeluaran; nominal > 0 dan keterangan wajib.
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:406` — Edit pengeluaran; tanggal harus terbaca (contoh 15 Juli 2026).
 - `app/src/main/java/com/kastep/app/ui/screens/PengeluaranKasScreen.kt:41` — Tanggal otomatis hari ini, divalidasi kalender (31/02 ditolak), disimpan sebagai "05 Oktober 2026".
 - `app/src/main/java/com/kastep/app/ui/screens/PengeluaranKasScreen.kt:313` — Dialog edit; pesan error tampil bila isian salah.
 
@@ -148,7 +149,7 @@ Panduan mencari bagian penting kode KASTEP dengan cepat. Daftar di bawah dibuat 
 
 ### `CARI-LAPORAN`
 
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:429` — Teks laporan ringkas untuk tombol Bagikan Laporan (saldo = pemasukan - pengeluaran).
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:450` — Teks laporan ringkas untuk tombol Bagikan Laporan (saldo = pemasukan - pengeluaran).
 - `app/src/main/java/com/kastep/app/ui/screens/LaporanKasScreen.kt:59` — Pemasukan & pengeluaran mengikuti periode yang dipilih; Semua Periode menampilkan saldo akhir.
 
 ### `CARI-GRAFIK`
@@ -163,21 +164,21 @@ Panduan mencari bagian penting kode KASTEP dengan cepat. Daftar di bawah dibuat 
 
 ### `CARI-QRIS`
 
-- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:138` — Nomor rekening / e-wallet tujuan transfer; ubah di sini bila rekening kelas berganti.
-- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:347` — Gambar QRIS dari res/drawable/ic_qris.
+- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:149` — Nomor rekening / e-wallet tujuan transfer; ubah di sini bila rekening kelas berganti.
+- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:419` — Gambar QRIS dari res/drawable/ic_qris.
 
 ### `CARI-WHATSAPP`
 
-- `app/src/main/java/com/kastep/app/ui/screens/PembayaranBerhasilScreen.kt:118` — Mengambil pembayaran terbaru lalu menampilkan jumlah & nama; tombol WA memakai sendWhatsAppConfirmation.
-- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:385` — Membuka WhatsApp dengan pesan konfirmasi. Nomor tujuan ada di variabel phone.
+- `app/src/main/java/com/kastep/app/ui/screens/PembayaranBerhasilScreen.kt:121` — Menjumlahkan baris yang baru dicatat bendahara lalu menampilkan jumlah & nama; tombol WA memakai sendWhatsAppConfirmation.
+- `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:459` — Membuka WhatsApp dengan pesan konfirmasi. Nomor bendahara ada di variabel phone.
 
 ### `CARI-VALIDASI`
 
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:162` — Cek format email, panjang password (min. 5), lalu cocokkan dengan akun terdaftar.
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:184` — Akun baru selalu ber-role USER; email tidak boleh dobel.
 - `app/src/main/java/com/kastep/app/data/KastepRepository.kt:232` — Tambah siswa; nama disimpan huruf besar dan tidak boleh sama dengan siswa lain.
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:371` — Tambah pengeluaran; nominal > 0 dan keterangan wajib.
-- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:385` — Edit pengeluaran; tanggal harus terbaca (contoh 15 Juli 2026).
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:392` — Tambah pengeluaran; nominal > 0 dan keterangan wajib.
+- `app/src/main/java/com/kastep/app/data/KastepRepository.kt:406` — Edit pengeluaran; tanggal harus terbaca (contoh 15 Juli 2026).
 - `app/src/main/java/com/kastep/app/ui/screens/DataSiswaScreen.kt:257` — Dialog tambah/edit siswa; menampilkan pesan bila nama sudah dipakai.
 - `app/src/main/java/com/kastep/app/ui/screens/PengeluaranKasScreen.kt:41` — Tanggal otomatis hari ini, divalidasi kalender (31/02 ditolak), disimpan sebagai "05 Oktober 2026".
 
@@ -188,7 +189,7 @@ Panduan mencari bagian penting kode KASTEP dengan cepat. Daftar di bawah dibuat 
 
 ### `CARI-FORMAT-RUPIAH`
 
-- `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:111` — Mengubah 1389000 menjadi "1.389.000".
+- `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:125` — Mengubah 1389000 menjadi "1.389.000".
 
 ### `CARI-TEMA`
 

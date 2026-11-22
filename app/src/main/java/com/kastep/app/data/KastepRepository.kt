@@ -15,7 +15,7 @@
 //    5. Kelola siswa      : addStudent, updateStudent, deleteStudent
 //    6. STATUS KAS        : getBulanKas, mingguLunas, statusBulan, sisaKas
 //    7. DENDA             : bulanTerlambat, calculateDenda, totalDenda
-//    8. processPayment    : mencatat pembayaran satu bulan
+//    8. processPayment    : mencatat pembayaran (KHUSUS ADMIN), satu bulan atau rentang bulan (processPaymentRange)
 //    9. Pengeluaran       : addPengeluaran, updatePengeluaran, deletePengeluaran
 //   10. Reset dan laporan : resetData, generateReportText
 //   11. Data awal         : loadInitialData (33 siswa, riwayat, pengeluaran asli buku kas)
@@ -329,17 +329,19 @@ class KastepRepository(context: Context? = null) {
     // Total denda satu siswa = jumlah denda semua bulan yang belum lunas.
     fun totalDenda(siswa: Siswa): Long = getBulanKas().sumOf { calculateDenda(siswa.nama, it) }
 
-    // MENCATAT PEMBAYARAN satu bulan untuk satu siswa. Langkahnya:
+    // MENCATAT PEMBAYARAN satu bulan untuk satu siswa. HANYA ADMIN (bendahara). Langkahnya:
+    //   0. tolak bila yang login bukan ADMIN. Siswa (USER) hanya bisa mengirim konfirmasi WA, tidak bisa mengubah status.
     //   1. validasi: siswa dipilih, bulan dipilih, siswa ada, bulan itu belum LUNAS (tidak bisa bayar dua kali)
     //   2. hitung denda dan sisa kas bulan itu
     //   3. buat PaymentRecord dengan jumlah = sisa kas + denda, taruh paling atas riwayat
     //   4. tandai bulan itu LUNAS: minggu dibayar diisi penuh (jumlah Senin dikurangi minggu dispensasi)
     //   5. simpan ke HP. Saldo otomatis naik karena dihitung dari semua riwayat.
-    // Hasil null = berhasil, teks = pesan error. Catatan: status langsung LUNAS tanpa verifikasi admin (batasan versi sekarang).
-    // CARI-PEMBAYARAN CARI-DENDA | Mencatat pembayaran: jumlah = sisa kas + denda, lalu bulan itu menjadi LUNAS.
-    // TANYA-GURU: Apa yang terjadi saat Bayar Sekarang? Total = sisa minggu x Rp5.000 + denda, disimpan ke riwayat,
-    // lalu bulan itu menjadi LUNAS. Bendahara tetap mengecek uangnya secara manual (verifikasi admin masih rencana).
+    // Hasil null = berhasil, teks = pesan error.
+    // CARI-PEMBAYARAN CARI-DENDA | Mencatat pembayaran (khusus Admin): jumlah = sisa kas + denda, lalu bulan itu menjadi LUNAS.
+    // TANYA-GURU: Siapa yang membuat status jadi LUNAS? Hanya bendahara (Admin). Siswa transfer lalu kirim konfirmasi WA,
+    // bendahara mengecek uangnya, lalu mencatat bulan dari sampai bulan berapa yang dibayar. Baru setelah itu status LUNAS.
     fun processPayment(studentName: String, bulan: String, metode: String): String? {
+        if (_userProfile.value.role != UserRole.ADMIN) return "Hanya bendahara (Admin) yang bisa mencatat pembayaran"
         if (studentName.isBlank()) return "Pilih siswa terlebih dahulu"
         if (bulan.isBlank()) return "Pilih bulan pembayaran"
 
@@ -362,6 +364,25 @@ class KastepRepository(context: Context? = null) {
             if (it.nama == studentName) it.copy(bayar = it.bayar + (bulan to wajib)) else it
         }
         saveToPrefs()
+        return null
+    }
+
+    // Mencatat beberapa bulan sekaligus untuk satu siswa, misalnya Juli sampai September (khusus Admin).
+    // bulanList = bulan dari sampai bulan yang dipilih bendahara. Bulan yang sudah LUNAS di dalamnya dilewati.
+    // Tiap bulan dicatat sebagai satu baris riwayat lewat processPayment, urut dari bulan paling awal.
+    // CARI-PEMBAYARAN | Catat rentang bulan (dari bulan ... sampai bulan ...), hanya Admin.
+    fun processPaymentRange(studentName: String, bulanList: List<String>, metode: String): String? {
+        if (_userProfile.value.role != UserRole.ADMIN) return "Hanya bendahara (Admin) yang bisa mencatat pembayaran"
+        if (studentName.isBlank()) return "Pilih siswa terlebih dahulu"
+        if (bulanList.isEmpty()) return "Pilih bulan pembayaran"
+        val siswa = _students.value.find { it.nama == studentName }
+            ?: return "Siswa tidak ditemukan"
+        val belum = bulanList.filter { statusBulan(siswa, it) != StatusBayar.LUNAS }
+        if (belum.isEmpty()) return "$studentName sudah lunas untuk bulan yang dipilih"
+        for (b in belum) {
+            val err = processPayment(studentName, b, metode)
+            if (err != null) return err
+        }
         return null
     }
 

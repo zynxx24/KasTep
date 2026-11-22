@@ -32,13 +32,14 @@ Grafik: **hanya satu**, grafik batang berpasangan di layar Laporan Kas (`IncomeE
 
 | Yang terlihat atau ditanyakan | Penjelasan | Letak kode |
 |---|---|---|
-| Pilihan metode QRIS, e-wallet, bank, Cash | PembayaranScreen | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:54` |
-| Nomor rekening tujuan (contoh) | accNo | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:139` |
-| Tombol hijau PEMBAYARAN | Big green button | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:159` |
-| Dialog pilih siswa dan bulan, total bayar | PaymentConfirmDialog | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:218` |
-| Dialog gambar QRIS | QrisSimulationDialog | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:349` |
-| Pesan WhatsApp konfirmasi | sendWhatsAppConfirmation | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:386` |
-| Layar animasi Pembayaran Berhasil | PembayaranBerhasilScreen | `app/src/main/java/com/kastep/app/ui/screens/PembayaranBerhasilScreen.kt:120` |
+| Pilihan metode QRIS, e-wallet, bank, Cash | PembayaranScreen | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:57` |
+| Nomor rekening tujuan (contoh) | accNo | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:150` |
+| Tombol hijau PEMBAYARAN | Big green button | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:170` |
+| Dialog pilih siswa (Admin), dari bulan sampai bulan, total bayar | PaymentConfirmDialog | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:242` |
+| Kotak pilihan bulan (Dari dan Sampai) | BulanPicker | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:397` |
+| Dialog gambar QRIS | QrisSimulationDialog | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:421` |
+| Pesan WhatsApp konfirmasi | sendWhatsAppConfirmation | `app/src/main/java/com/kastep/app/ui/screens/PembayaranScreen.kt:460` |
+| Layar animasi Pembayaran Berhasil | PembayaranBerhasilScreen | `app/src/main/java/com/kastep/app/ui/screens/PembayaranBerhasilScreen.kt:123` |
 | Tabel Riwayat Bayar (8 per halaman) | RiwayatPembayaranScreen | `app/src/main/java/com/kastep/app/ui/screens/RiwayatPembayaranScreen.kt:61` |
 
 ## DATA SISWA, PENGELUARAN, LAIN-LAIN
@@ -59,12 +60,13 @@ Grafik: **hanya satu**, grafik batang berpasangan di layar Laporan Kas (`IncomeE
 
 | Yang terlihat atau ditanyakan | Penjelasan | Letak kode |
 |---|---|---|
-| Rumus SALDO | KastepViewModel.saldo | `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:49` |
+| Rumus SALDO | KastepViewModel.saldo | `app/src/main/java/com/kastep/app/data/KastepViewModel.kt:51` |
 | Rumus DENDA | calculateDenda | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:322` |
 | Status LUNAS atau BELUM satu bulan | statusBulan | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:293` |
 | Kekurangan kas satu bulan | sisaKas | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:299` |
 | Hitung hari Senin sebulan | jumlahMinggu | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:110` |
-| Mencatat pembayaran | processPayment | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:342` |
-| Data awal 33 siswa dan buku kas | loadInitialData | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:461` |
-| Simpan ke HP | saveToPrefs | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:805` |
+| Mencatat pembayaran (khusus Admin) | processPayment | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:343` |
+| Mencatat rentang bulan (khusus Admin) | processPaymentRange | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:374` |
+| Data awal 33 siswa dan buku kas | loadInitialData | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:482` |
+| Simpan ke HP | saveToPrefs | `app/src/main/java/com/kastep/app/data/KastepRepository.kt:826` |
 | Bentuk data | KastepModels.kt | `app/src/main/java/com/kastep/app/data/KastepModels.kt:47` |

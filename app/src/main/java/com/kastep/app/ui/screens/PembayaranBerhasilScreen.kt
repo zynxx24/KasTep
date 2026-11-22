@@ -6,9 +6,12 @@
 //            "CARI-" untuk semua penanda, atau salah satu nama di baris Penanda.
 // ==========================================================================
 //  BACA INI DULU : LAYAR "PEMBAYARAN BERHASIL"
-//  Tampil setelah processPayment sukses. Mengambil pembayaran TERBARU (records[0], karena repository menaruh yang baru di indeks 0),
-//  lalu menampilkan jumlah, nama siswa, bulan, dan metode. Ada animasi: uang melayang, kembang api, maskot (KasMascot), dan kubah hijau.
-//  Tombol putih "Konfirmasi WA" memanggil sendWhatsAppConfirmation (dari PembayaranScreen.kt). Tombol biru tua "Kembali" menutup layar.
+//  Tampil setelah BENDAHARA (Admin) mencatat pembayaran (processPaymentRange sukses). Siswa tidak sampai ke layar ini,
+//  karena siswa hanya mengirim konfirmasi WA. Layar mengambil baris riwayat yang baru dicatat (sebanyak lastPaymentCount,
+//  yang terbaru ada di indeks 0), menjumlahkannya, lalu menampilkan jumlah, nama siswa, rentang bulan, dan metode.
+//  Ada animasi: uang melayang, kembang api, maskot (KasMascot), dan kubah hijau.
+//  Tombol putih "Konfirmasi WA" memanggil sendWhatsAppConfirmation (dari PembayaranScreen.kt) untuk meneruskan bukti ke siswa.
+//  Tombol biru tua "Kembali" menutup layar.
 //  Semua gambar di sini digambar dengan kode (Canvas), bukan file gambar.
 package com.kastep.app.ui.screens
 
@@ -115,7 +118,7 @@ private object DomeShape : Shape {
     }
 }
 
-// CARI-PEMBAYARAN CARI-WHATSAPP | Mengambil pembayaran terbaru lalu menampilkan jumlah & nama; tombol WA memakai sendWhatsAppConfirmation.
+// CARI-PEMBAYARAN CARI-WHATSAPP | Menjumlahkan baris yang baru dicatat bendahara lalu menampilkan jumlah & nama; tombol WA memakai sendWhatsAppConfirmation.
 @Composable
 fun PembayaranBerhasilScreen(
     viewModel: KastepViewModel,
@@ -126,23 +129,31 @@ fun PembayaranBerhasilScreen(
     val context = LocalContext.current
     val userProfile by viewModel.userProfile.collectAsState()
     val records by viewModel.paymentRecords.collectAsState()
+    val jumlahBaris by viewModel.lastPaymentCount.collectAsState()
     val currentDate = viewModel.getCurrentDateString()
 
-    // Newest record is always inserted at index 0 by the repository.
+    // Baris yang baru dicatat ada di depan (indeks 0 = bulan terakhir). Dibalik supaya urut dari bulan paling awal.
+    val batch = records.take(jumlahBaris).reversed()
     val last = records.firstOrNull()
+    val totalJumlah = batch.sumOf { it.jumlah }
+    val totalDenda = batch.sumOf { it.denda }
+    val labelBulan = when {
+        batch.size <= 1 -> last?.bulan.orEmpty()
+        else -> "${batch.first().bulan} s/d ${batch.last().bulan}"
+    }
 
     PembayaranBerhasilContent(
         currentDate = currentDate,
         userName = userProfile.nama,
-        jumlah = last?.jumlah ?: 0L,
+        jumlah = totalJumlah,
         atasNama = last?.namaSiswa ?: "-",
         metode = last?.metode.orEmpty(),
-        bulan = last?.bulan.orEmpty(),
+        bulan = labelBulan,
         onOpenDrawer = onOpenDrawer,
         onNavigateToProfile = onNavigateToProfile,
         onKonfirmasiWa = last?.let { r ->
             {
-                sendWhatsAppConfirmation(context, r.namaSiswa, r.bulan, r.metode, r.jumlah, r.denda)
+                sendWhatsAppConfirmation(context, r.namaSiswa, batch.joinToString(", ") { it.bulan }, r.metode, totalJumlah, totalDenda, sudahDicatat = true)
             }
         },
         onKembali = onKembali

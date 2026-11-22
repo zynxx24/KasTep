@@ -15,7 +15,9 @@ package com.kastep.app.data
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -69,9 +71,21 @@ class KastepViewModel(application: Application) : AndroidViewModel(application) 
     fun deleteStudent(no: Int) = repository.deleteStudent(no)
 
     // Payments
-    // Catat pembayaran satu bulan: sisa kas + denda, bulan itu jadi LUNAS.
+    // Catat pembayaran satu bulan (khusus Admin): sisa kas + denda, bulan itu jadi LUNAS.
     fun processPayment(studentName: String, bulan: String, metode: String): String? =
         repository.processPayment(studentName, bulan, metode)
+
+    // Jumlah baris riwayat yang dibuat oleh pencatatan terakhir. Dipakai layar Pembayaran Berhasil untuk menjumlahkan rentang bulan.
+    private val _lastPaymentCount = MutableStateFlow(1)
+    val lastPaymentCount: StateFlow<Int> = _lastPaymentCount.asStateFlow()
+
+    // Catat rentang bulan sekaligus (khusus Admin), misalnya Juli sampai September. Hasil null = berhasil.
+    fun processPaymentRange(studentName: String, bulanList: List<String>, metode: String): String? {
+        val before = repository.paymentRecords.value.size
+        val result = repository.processPaymentRange(studentName, bulanList, metode)
+        if (result == null) _lastPaymentCount.value = (repository.paymentRecords.value.size - before).coerceAtLeast(1)
+        return result
+    }
     // Denda satu bulan tagihan untuk satu siswa.
     fun calculateDenda(studentName: String, bulan: String): Long =
         repository.calculateDenda(studentName, bulan)

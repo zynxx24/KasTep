@@ -56,4 +56,5 @@ Data hidup di repository, lewat `KastepViewModel`, lalu layar menampilkannya. Bi
 | LUNAS atau BELUM | Hasil `statusBulan`: minggu dibayar + dispensasi dibandingkan jumlah Senin bulan itu |
 | Dispensasi | Minggu bebas kas karena BI atau PKL, dihitung lunas |
 | Denda | Rp5.000 x bulan terlambat, hanya untuk bulan yang belum lunas |
-| `processPayment` | Mencatat pembayaran satu bulan (sisa kas + denda) lalu menandainya LUNAS |
+| `processPayment` | Mencatat pembayaran satu bulan (sisa kas + denda) lalu menandainya LUNAS. Hanya akun ADMIN |
+| `processPaymentRange` | Mencatat beberapa bulan sekaligus (dari bulan sampai bulan). Hanya akun ADMIN |
