@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- » Deklarasi XML (pengaturan, bukan kode). -->
+<!-- » <resources xmlns:tools> = daftar tema. xmlns:tools = alamat kamus tambahan untuk alat Android Studio. -->
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- » <style name="Theme.Kastep"> = tema bernama Theme.Kastep (dipakai di manifest). parent = dasarnya tema -->
+    <!-- » Material terang tanpa bar judul. -->
     <style name="Theme.Kastep" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- » <item forceDarkAllowed> = mode gelap sistem TIDAK dipaksakan ke aplikasi (false). -->
         <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 </resources>

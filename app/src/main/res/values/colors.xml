@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- » Deklarasi XML (pengaturan, bukan kode). -->
+<!-- » <resources> = daftar warna bawaan proyek. Warna yang tampil di layar sebenarnya diatur di folder -->
+<!-- » ui/theme. -->
 <resources>
+    <!-- » purple_200 = ungu muda #BB86FC. -->
     <color name="purple_200">#FFBB86FC</color>
+    <!-- » purple_500 = ungu sedang #6200EE. -->
     <color name="purple_500">#FF6200EE</color>
+    <!-- » purple_700 = ungu tua #3700B3. -->
     <color name="purple_700">#FF3700B3</color>
+    <!-- » teal_200 = hijau kebiruan muda #03DAC5. -->
     <color name="teal_200">#FF03DAC5</color>
+    <!-- » teal_700 = hijau kebiruan tua #018786. -->
     <color name="teal_700">#FF018786</color>
+    <!-- » black = hitam. FF = tidak transparan, lalu 000000 = hitam. -->
     <color name="black">#FF000000</color>
+    <!-- » white = putih. -->
     <color name="white">#FFFFFFFF</color>
 </resources>

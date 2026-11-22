@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- » Deklarasi XML (pengaturan, bukan kode). -->
+<!-- » <adaptive-icon> = ikon adaptif untuk versi bulat, sama isinya dengan ic_launcher.xml. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- » <background> = lapisan belakang: ic_launcher_background. -->
     <background android:drawable="@drawable/ic_launcher_background" />
+    <!-- » <foreground> = lapisan depan: ic_launcher_foreground. -->
     <foreground android:drawable="@drawable/ic_launcher_foreground" />
 </adaptive-icon>

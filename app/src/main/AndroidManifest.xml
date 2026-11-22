@@ -1,9 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- » Deklarasi XML: file ini berisi pengaturan (bukan kode). utf-8 = huruf dan simbol bisa dibaca dengan -->
+<!-- » benar. -->
+<!-- » <manifest> = KTP aplikasi. Isinya izin dan daftar layar KASTEP. xmlns:android = alamat kamus istilah -->
+<!-- » Android. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- » uses-permission ACTIVITY_RECOGNITION = izin mengenali aktivitas (misalnya gerakan/langkah). Diminta ke -->
+    <!-- » pengguna saat dibutuhkan. -->
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <!-- » uses-permission INTERNET = izin memakai internet. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- » <application> = pengaturan untuk seluruh aplikasi. -->
+    <!-- » android:allowBackup : allowBackup = data aplikasi boleh dicadangkan otomatis oleh Android. -->
+    <!-- » android:icon : icon = ikon aplikasi dari folder mipmap. -->
+    <!-- » android:label : label = nama yang tampil di bawah ikon, diambil dari strings.xml (KASTEP). -->
+    <!-- » android:roundIcon : roundIcon = ikon versi bulat untuk HP yang memakainya. -->
+    <!-- » android:supportsRtl : supportsRtl = mendukung tulisan kanan-ke-kiri bila bahasa HP memerlukan. -->
+    <!-- » android:theme : theme = tema dasar aplikasi: Theme.Kastep (dari themes.xml). -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -11,12 +25,19 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Kastep">
+        <!-- » <activity> = satu layar yang terdaftar di aplikasi. -->
+        <!-- » android:name : name=".MainActivity" = layar yang dibuka adalah kelas MainActivity. -->
+        <!-- » android:exported : exported="true" = layar boleh dibuka dari luar aplikasi (wajib agar ikon di HP bisa -->
+        <!-- » membukanya). -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Kastep">
+            <!-- » <intent-filter> = aturan kapan layar ini dibuka. -->
             <intent-filter>
+                <!-- » action MAIN = titik masuk utama aplikasi. -->
                 <action android:name="android.intent.action.MAIN" />
+                <!-- » category LAUNCHER = layar ini muncul sebagai ikon di daftar aplikasi HP. -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

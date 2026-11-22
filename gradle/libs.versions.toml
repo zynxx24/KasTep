@@ -1,29 +1,57 @@
+// » [versions] = daftar NOMOR VERSI semua pustaka. Ubah angka di sini, semua file yang memakainya ikut
+// » berubah.
 [versions]
+// » agp = versi Android Gradle Plugin (alat pembangun .apk) 8.4.1.
 agp = "8.4.1"
+// » kotlin = versi bahasa Kotlin 1.9.23.
 kotlin = "1.9.23"
+// » coreKtx = versi core-ktx 1.13.1.
 coreKtx = "1.13.1"
+// » lifecycleRuntimeKtx = versi lifecycle 2.8.0 (dipakai juga untuk viewmodel-compose).
 lifecycleRuntimeKtx = "2.8.0"
+// » activityCompose = versi activity-compose 1.9.0.
 activityCompose = "1.9.0"
+// » composeBom = versi BOM Compose 2024.05.00 (daftar versi Compose yang sudah cocok).
 composeBom = "2024.05.00"
+// » navigationCompose = versi navigasi antar layar 2.7.7.
 navigationCompose = "2.7.7"
+// » material3 = versi Material 3 1.2.1.
 material3 = "1.2.1"
+// » coroutines = versi kotlinx-coroutines 1.8.0.
 coroutines = "1.8.0"
 
+// » [libraries] = daftar pustaka. Nama di kiri dipakai di app/build.gradle.kts (libs.xxx).
 [libraries]
+// » androidx-core-ktx = pustaka core-ktx. version.ref = ambil nomor versi dari [versions].
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+// » androidx-lifecycle-runtime-ktx = pustaka lifecycle runtime.
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+// » androidx-lifecycle-viewmodel-compose = pustaka penghubung ViewModel dan Compose.
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
+// » androidx-activity-compose = pustaka Activity + Compose.
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+// » androidx-compose-bom = BOM: satu versi untuk banyak pustaka Compose.
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+// » androidx-ui = pustaka dasar Compose (tanpa versi, diatur BOM).
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+// » androidx-ui-graphics = pustaka gambar Compose.
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+// » androidx-ui-tooling = alat debug tampilan.
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+// » androidx-ui-tooling-preview = pratinjau tampilan.
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+// » androidx-material3 = komponen Material 3.
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+// » androidx-material-icons-extended = kumpulan ikon tambahan.
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+// » androidx-navigation-compose = alat perpindahan layar.
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+// » kotlinx-coroutines-android = pekerjaan latar belakang untuk Android.
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 
+// » [plugins] = daftar plugin Gradle.
 [plugins]
+// » android-application = plugin pembuat aplikasi Android (versi dari agp).
 android-application = { id = "com.android.application", version.ref = "agp" }
+// » kotlin-android = plugin Kotlin untuk Android (versi dari kotlin).
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

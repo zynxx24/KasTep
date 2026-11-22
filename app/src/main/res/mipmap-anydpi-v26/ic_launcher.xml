@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- » Deklarasi XML (pengaturan, bukan kode). -->
+<!-- » <adaptive-icon> = ikon adaptif: HP boleh memotongnya jadi bentuk apa pun (bulat, kotak). -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- » <background> = lapisan belakang ikon: ic_launcher_background (kotak hitam). -->
     <background android:drawable="@drawable/ic_launcher_background" />
+    <!-- » <foreground> = lapisan depan ikon: ic_launcher_foreground (gambar dompet biru). -->
     <foreground android:drawable="@drawable/ic_launcher_foreground" />
 </adaptive-icon>

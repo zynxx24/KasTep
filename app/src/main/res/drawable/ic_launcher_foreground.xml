@@ -1,45 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- » Deklarasi XML (pengaturan, bukan kode). -->
+<!-- » <vector> = gambar vektor ikon depan: dompet biru dengan kartu dan gesper. -->
+<!-- » android:width : width = lebar 108dp. -->
+<!-- » android:height : height = tinggi 108dp. -->
+<!-- » android:viewportWidth : viewportWidth = lebar ruang gambar internal 108. -->
+<!-- » android:viewportHeight : viewportHeight = tinggi ruang gambar internal 108. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
+    <!-- » Komentar bawaan: bagian badan dompet. -->
     <!-- Wallet body -->
+    <!-- » <path> = bentuk badan dompet. -->
+    <!-- » android:fillColor : fillColor transparent = isi dibiarkan kosong (tidak diwarnai). -->
+    <!-- » android:strokeColor : strokeColor #00B0FF = warna garis tepi biru. -->
+    <!-- » android:strokeWidth : strokeWidth 3 = tebal garis 3. -->
+    <!-- » android:pathData : pathData = jalur garis yang membentuk persegi panjang bersudut bulat. -->
     <path
         android:fillColor="@android:color/transparent"
         android:strokeColor="#00B0FF"
         android:strokeWidth="3"
         android:pathData="M30,42 L30,38 C30,35 32,33 35,33 L70,33 C73,33 75,35 75,38 L75,72 C75,75 73,77 70,77 L35,77 C32,77 30,75 30,72 Z" />
 
+    <!-- » Komentar bawaan: kartu yang menyembul di atas dompet. -->
     <!-- Cards sticking out top -->
+    <!-- » <path> = bentuk kartu pertama. -->
+    <!-- » android:fillColor : fillColor transparent = isi kosong. -->
+    <!-- » android:strokeColor : strokeColor #00B0FF = garis biru. -->
+    <!-- » android:strokeWidth : strokeWidth 2.5 = tebal garis 2.5. -->
+    <!-- » android:pathData : pathData = garis miring kartu pertama. -->
     <path
         android:fillColor="@android:color/transparent"
         android:strokeColor="#00B0FF"
         android:strokeWidth="2.5"
         android:pathData="M40,33 L42,25 L72,30 L70,33" />
 
+    <!-- » <path> = bentuk kartu kedua. -->
+    <!-- » android:fillColor : fillColor transparent = isi kosong. -->
+    <!-- » android:strokeColor : strokeColor #00B0FF = garis biru. -->
+    <!-- » android:strokeWidth : strokeWidth 2.5 = tebal garis 2.5. -->
+    <!-- » android:pathData : pathData = garis miring kartu kedua. -->
     <path
         android:fillColor="@android:color/transparent"
         android:strokeColor="#00B0FF"
         android:strokeWidth="2.5"
         android:pathData="M45,33 L48,24 L74,28 L72,33" />
 
+    <!-- » Komentar bawaan: gesper di sisi kanan. -->
     <!-- Clasp/tab on right side -->
+    <!-- » <path> = bentuk gesper (persegi dengan sudut bulat di sisi kanan). -->
+    <!-- » android:fillColor : fillColor transparent = isi kosong. -->
+    <!-- » android:strokeColor : strokeColor #00B0FF = garis biru. -->
+    <!-- » android:strokeWidth : strokeWidth 3 = tebal garis 3. -->
+    <!-- » android:pathData : pathData = jalur garis gesper. -->
     <path
         android:fillColor="@android:color/transparent"
         android:strokeColor="#00B0FF"
         android:strokeWidth="3"
         android:pathData="M75,52 L82,52 C84,52 85,53 85,55 L85,62 C85,64 84,65 82,65 L75,65" />
 
+    <!-- » Komentar bawaan: lingkaran gesper. -->
     <!-- Clasp circle -->
+    <!-- » <path> = lingkaran kosong di gesper. -->
+    <!-- » android:fillColor : fillColor transparent = isi kosong. -->
+    <!-- » android:strokeColor : strokeColor #00B0FF = garis biru. -->
+    <!-- » android:strokeWidth : strokeWidth 2 = tebal garis 2. -->
+    <!-- » android:pathData : pathData = lingkaran berjari-jari 3. -->
     <path
         android:fillColor="@android:color/transparent"
         android:strokeColor="#00B0FF"
         android:strokeWidth="2"
         android:pathData="M79,58.5 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-6 0" />
 
+    <!-- » Komentar bawaan: titik di tengah gesper. -->
     <!-- Inner dot in clasp -->
+    <!-- » <path> = titik biru penuh. -->
+    <!-- » android:fillColor : fillColor #00B0FF = isi titik berwarna biru. -->
+    <!-- » android:pathData : pathData = lingkaran kecil berjari-jari 1.2 di tengah gesper. -->
     <path
         android:fillColor="#00B0FF"
         android:pathData="M79,58.5 m-1.2,0 a1.2,1.2 0,1 1,2.4 0 a1.2,1.2 0,1 1,-2.4 0" />
