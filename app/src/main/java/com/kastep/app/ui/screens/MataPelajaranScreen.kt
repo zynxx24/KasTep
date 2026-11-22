@@ -614,8 +614,8 @@ private fun SeninRow(entries: List<ScheduleEntry>, cellWidth: Dp, @Suppress("unu
 // Baris hari biasa: kotak mapel ditempatkan sesuai jam mulai.
 @Composable
 // » @Composable = fungsi penggambar tampilan.
+// » private fun NormalDayRow = baris hari biasa.
 private fun NormalDayRow(entries: List<ScheduleEntry>, cellWidth: Dp) {
-    // » private fun NormalDayRow = baris hari biasa.
     // Fill periods 1-10, placing subject blocks where they belong
     // » Komentar: isi JP 1 sampai 10, blok mapel diletakkan di jam mulai masing-masing.
     val sortedEntries = entries.sortedBy { it.startPeriod }
@@ -634,8 +634,8 @@ private fun NormalDayRow(entries: List<ScheduleEntry>, cellWidth: Dp) {
                 val gapWidth = cellWidth * (entry.startPeriod - currentPeriod)
                 // » Box = kotak kosong untuk mengisi jeda.
                 Box(
+                    // » Modifier kotak kosong: tinggi penuh baris.
                     modifier = Modifier
-                        // » Modifier kotak kosong: tinggi penuh baris.
                         .width(gapWidth)
                         .fillMaxHeight()
                         // » Garis tepi tipis (30% transparan) untuk jeda kosong.

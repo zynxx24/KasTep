@@ -339,8 +339,8 @@ fun PengeluaranKasScreen(viewModel: KastepViewModel, onOpenDrawer: () -> Unit, o
                 // » Sudut membulat 16dp.
                 shape = RoundedCornerShape(16.dp)
             ) {
+                // » Box isi tombol, penuh sebesar tombol.
                 Box(
-                    // » Box isi tombol, penuh sebesar tombol.
                     modifier = Modifier.fillMaxSize()
                         // » Latar gradasi horizontal biru (GradientBlueStart ke GradientBlueEnd), sudut 16dp.
                         .background(Brush.horizontalGradient(listOf(GradientBlueStart, GradientBlueEnd)), RoundedCornerShape(16.dp)),

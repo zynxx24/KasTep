@@ -107,8 +107,8 @@ class KastepRepository(context: Context? = null) {
     // » _registeredUsers = daftar semua akun: email -> profil. mutableMapOf = peta yang bisa diubah.
     private val _registeredUsers = mutableMapOf<String, UserProfile>()
 
+    // » companion object = bagian milik kelas (bisa dipakai tanpa membuat objek).
     companion object {
-        // » companion object = bagian milik kelas (bisa dipakai tanpa membuat objek).
         // CARI-NOMINAL-KAS | Iuran per minggu (setiap Senin). Tagihan satu bulan = jumlah Senin x nilai ini.
         // » KAS_MINGGUAN = iuran per minggu Rp5.000. const = nilai tetap saat kompilasi. L = tipe Long.
         const val KAS_MINGGUAN = 5000L

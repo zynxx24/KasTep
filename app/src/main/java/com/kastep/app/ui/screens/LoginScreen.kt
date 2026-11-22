@@ -356,8 +356,8 @@ fun LoginScreen(
                 // » contentPadding = jarak isi tombol (standar teks).
                 contentPadding = ButtonDefaults.TextButtonContentPadding
             ) {
+                // » Box = kotak isi di dalam tombol.
                 Box(
-                    // » Box = kotak isi di dalam tombol.
                     modifier = Modifier
                         // » Penuh sebesar tombol.
                         .fillMaxSize()

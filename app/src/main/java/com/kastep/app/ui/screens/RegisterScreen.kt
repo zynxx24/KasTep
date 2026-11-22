@@ -271,12 +271,12 @@ fun RegisterScreen(
 // » @Composable private fun FormField = fungsi bantu untuk satu kolom isian berlabel. Hanya dipakai di file
 // » ini.
 @Composable
-// » label = teks label di atas kotak.
 private fun FormField(
-    // » value = isi kotak.
+    // » label = teks label di atas kotak.
     label: String,
-    // » onValueChange = dipanggil saat isi berubah.
+    // » value = isi kotak.
     value: String,
+    // » onValueChange = dipanggil saat isi berubah.
     onValueChange: (String) -> Unit,
     // » isPassword = apakah kolom ini password (default false).
     isPassword: Boolean = false,
